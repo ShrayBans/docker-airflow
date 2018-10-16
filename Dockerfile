@@ -5,7 +5,7 @@
 # SOURCE: https://github.com/puckel/docker-airflow
 
 FROM python:3.6-slim
-LABEL maintainer="Puckel_"
+LABEL maintainer="ShrayBans"
 
 # Never prompts the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
@@ -75,6 +75,37 @@ RUN set -ex \
 
 COPY script/entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
+
+
+########### Edited by Shray
+# Replace shell with bash so we can source files
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+
+# Install base dependencies
+RUN apt-get update && apt-get install -y -q --no-install-recommends \
+        apt-transport-https \
+        build-essential \
+        ca-certificates \
+        curl \
+        git \
+        libssl-dev \
+        wget
+
+ENV NVM_DIR /usr/local/nvm
+ENV NODE_VERSION 8.11.3
+
+WORKDIR $NVM_DIR
+
+RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash \
+    && . $NVM_DIR/nvm.sh \
+    && nvm install $NODE_VERSION \
+    && nvm alias default $NODE_VERSION \
+    && nvm use default
+
+ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
+ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
+
+########### Edited by Shray
 
 RUN chown -R airflow: ${AIRFLOW_HOME}
 

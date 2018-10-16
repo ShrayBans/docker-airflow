@@ -1,0 +1,19 @@
+{
+  "name": "docker-airflow",
+  "version": "1.0.0",
+  "description": "[![CircleCI branch](https://img.shields.io/circleci/project/puckel/docker-airflow/master.svg?maxAge=2592000)](https://circleci.com/gh/puckel/docker-airflow/tree/master) [![Docker Build Status](https://img.shields.io/docker/build/puckel/docker-airflow.svg)]()",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShrayBans/docker-airflow.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ShrayBans/docker-airflow/issues"
+  },
+  "homepage": "https://github.com/ShrayBans/docker-airflow#readme"
+}
