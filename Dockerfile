@@ -105,6 +105,12 @@ RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | ba
 ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
 ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
+ENV POSTGRES_HOST sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com
+ENV POSTGRES_PORT 5432
+ENV POSTGRES_USER sixthman
+ENV POSTGRES_PASSWORD lebrunsux123
+ENV POSTGRES_DB airflow
+
 ########### Edited by Shray
 
 RUN chown -R airflow: ${AIRFLOW_HOME}
