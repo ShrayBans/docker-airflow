@@ -111,7 +111,7 @@ RUN pip3 install boto3==1.8.0 \
     && pip3 install urllib3==1.22 \
     && pip3 install psycopg2 \
     && pip3 install pyyaml \
-    && pip3 install pandas \
+    && pip3 install pandas
 
 ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
 ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
