@@ -17,4 +17,7 @@ sed -i -E "s/(docker-airflow:)([0-9.]+)/docker-airflow:$PACKAGE_VERSION/g" docke
 sed -i -E "s/(docker-airflow:)([0-9.]+)/docker-airflow:$PACKAGE_VERSION/g" docker-compose-LocalExecutor.yml
 
 git commit -m "$PACKAGE_VERSION"
+
+sleep 2
+
 git push
