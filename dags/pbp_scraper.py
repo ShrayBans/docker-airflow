@@ -21,18 +21,16 @@ default_args = {
 
 dag = DAG("play_by_play_scraper", default_args=default_args, schedule_interval=timedelta(minutes=30))
 
-# t1, t2 and t3 are examples of tasks created by instantiating operators
-t1 = BashOperator(task_id="print_date", bash_command="node ~", dag=dag)
+print(DEFAULT_DATE)
+t1 = SqlSensor(
+        task_id='30_minutes_before_game_sensor',
+        conn_id='sixthman_prod',
+        pool='play_by_play_scraper',
+        sql="SELECT * FROM nba.game WHERE game_datetime < NOW() + INTERVAL '30 MINUTES' AND status != 'completed';",
+        dag=self.dag)
+t1.run(start_date=DEFAULT_DATE, end_date=DEFAULT_DATE, ignore_ti_state=True)
 
 t2 = BashOperator(task_id="sleep", bash_command="sleep 5", retries=3, dag=dag)
-
-templated_command = """
-    {% for i in range(5) %}
-        echo "{{ ds }}"
-        echo "{{ macros.ds_add(ds, 7)}}"
-        echo "{{ params.my_param }}"
-    {% endfor %}
-"""
 
 t3 = BashOperator(
     task_id="templated",
