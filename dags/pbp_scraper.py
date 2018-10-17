@@ -34,8 +34,7 @@ t2 = BashOperator(task_id="sleep", bash_command="sleep 5", retries=3, dag=dag)
 
 t3 = BashOperator(
     task_id="templated",
-    bash_command=templated_command,
-    params={"my_param": "Parameter I passed in"},
+    bash_command="echo wooooooooo",
     dag=dag,
 )
 
