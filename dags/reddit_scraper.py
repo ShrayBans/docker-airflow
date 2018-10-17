@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
-from airflow.operators.sensors import SqlSensor
+from airflow.operators.sensors import S3KeySensor
 
 
 default_args = {
@@ -19,14 +19,16 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG("play_by_play_scraper", default_args=default_args, schedule_interval=timedelta(minutes=30))
+dag = DAG("reddit_scraper", default_args=default_args, schedule_interval=timedelta(minutes=30))
 
-t1 = SqlSensor(
-        task_id='30_minutes_before_game_sensor',
-        conn_id='sixthman_prod',
-        pool='play_by_play_scraper',
-        sql="SELECT * FROM nba.game WHERE game_datetime < NOW() + INTERVAL '30 MINUTES' AND status != 'completed';",
-        dag=dag)
+s3_sensor = S3KeySensor(
+    task_id='s3_sensor',
+    bucket_key='sensor_test/*',
+    wildcard_match=True,
+    bucket_name='cdn.getsixthman.com',
+    s3_conn_id='sixthman_airflow_s3',
+    dag=dag
+)
 
 t2 = BashOperator(task_id="sleep", bash_command="sleep 5", retries=3, dag=dag)
 
@@ -36,5 +38,5 @@ t3 = BashOperator(
     dag=dag,
 )
 
-t2.set_upstream(t1)
-t3.set_upstream(t1)
+t2.set_upstream(s3_sensor)
+t3.set_upstream(s3_sensor)
