@@ -13,7 +13,7 @@ services:
             - ./pgdata:/var/lib/postgresql/data/pgdata
 
     webserver:
-        image: 146006631841.dkr.ecr.us-west-1.amazonaws.com/docker-airflow:1.0.4
+        image: 146006631841.dkr.ecr.us-west-1.amazonaws.com/docker-airflow:1.0.6
         restart: always
         depends_on:
             - postgres
