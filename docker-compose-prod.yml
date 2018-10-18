@@ -1,12 +1,12 @@
 version: '2.1'
 services:
     webserver:
-        image: 146006631841.dkr.ecr.us-west-1.amazonaws.com/docker-airflow:4.4.4
+        image: 146006631841.dkr.ecr.us-west-1.amazonaws.com/docker-airflow:1.0.9
         restart: always
         environment:
             - LOAD_EX=n
             - EXECUTOR=Local
-            - FERNET_KEY=bGVicnVuc3V4MTIzCg==
+            - FERNET_KEY=kW71__YwaYMUkCTxvDrUQG2K85qfGO-R9lxseMC1diU=
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./src:/usr/local/airflow/src
