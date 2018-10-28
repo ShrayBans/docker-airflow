@@ -19,8 +19,24 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG("reddit_scraper", default_args=default_args, schedule_interval=timedelta(minutes=1), catchup=False)
+dag = DAG("s3_sensor_example", default_args=default_args, schedule_interval=timedelta(minutes=30))
 
+s3_sensor = S3KeySensor(
+    task_id='s3_sensor',
+    bucket_key='sensor_test/*',
+    wildcard_match=True,
+    bucket_name='cdn.getsixthman.com',
+    s3_conn_id='sixthman_airflow_s3',
+    dag=dag
+)
 
-t1 = BashOperator(task_id="scrape_nba", bash_command="echo lol", retries=3, dag=dag)
-t2 = BashOperator(task_id="scrape_lakers", bash_command="sleep 5", retries=3, dag=dag)
+t2 = BashOperator(task_id="sleep", bash_command="sleep 5", retries=3, dag=dag)
+
+t3 = BashOperator(
+    task_id="templated",
+    bash_command="echo wooooooooo",
+    dag=dag,
+)
+
+t2.set_upstream(s3_sensor)
+t3.set_upstream(s3_sensor)
