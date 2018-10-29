@@ -75,6 +75,8 @@ RUN set -ex \
 
 COPY script/entrypoint.sh /entrypoint.sh
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
+COPY package.json ${AIRFLOW_HOME}/package.json
+
 
 
 ########### Edited by Shray
@@ -94,6 +96,9 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
 ENV NVM_DIR /usr/local/nvm
 ENV NODE_VERSION 8.11.3
 
+WORKDIR ${AIRFLOW_HOME}
+
+
 WORKDIR $NVM_DIR
 
 RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash \
@@ -101,6 +106,12 @@ RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | ba
     && nvm install $NODE_VERSION \
     && nvm alias default $NODE_VERSION \
     && nvm use default
+
+ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
+ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
+
+RUN npm install -g yarn
+RUN yarn install
 
 RUN pip3 install boto3==1.8.0 \
     && pip3 install botocore==1.11.0 \
@@ -112,9 +123,6 @@ RUN pip3 install boto3==1.8.0 \
     && pip3 install psycopg2 \
     && pip3 install pyyaml \
     && pip3 install pandas
-
-ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
-ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
 ENV POSTGRES_HOST sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com
 ENV POSTGRES_PORT 5432
