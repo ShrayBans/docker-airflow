@@ -1,7 +1,7 @@
 version: '2.1'
 services:
     webserver:
-        image: 146006631841.dkr.ecr.us-west-1.amazonaws.com/docker-airflow:1.0.12
+        image: 146006631841.dkr.ecr.us-west-1.amazonaws.com/docker-airflow:1.0.13
         restart: always
         environment:
             - LOAD_EX=n
