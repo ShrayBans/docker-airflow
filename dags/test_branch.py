@@ -21,7 +21,7 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG("test_branch", default_args=default_args, schedule_interval=timedelta(minutes=5))
+dag = DAG("test_branch", default_args=default_args, schedule_interval=timedelta(minutes=5), catchup=False)
 
 t1 = BashOperator(
     task_id="init",

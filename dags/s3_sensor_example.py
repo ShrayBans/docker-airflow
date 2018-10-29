@@ -19,7 +19,7 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG("s3_sensor_example", default_args=default_args, schedule_interval=timedelta(minutes=30))
+dag = DAG("s3_sensor_example", default_args=default_args, schedule_interval=timedelta(minutes=30), catchup=False)
 
 s3_sensor = S3KeySensor(
     task_id='s3_sensor',
