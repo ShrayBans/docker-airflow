@@ -96,7 +96,6 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
 ENV NVM_DIR /usr/local/nvm
 ENV NODE_VERSION 8.11.3
 
-WORKDIR ${AIRFLOW_HOME}
 
 
 WORKDIR $NVM_DIR
@@ -110,6 +109,7 @@ RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | ba
 ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
 ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
+WORKDIR ${AIRFLOW_HOME}
 RUN npm install -g yarn
 RUN yarn install
 
