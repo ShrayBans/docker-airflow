@@ -22,10 +22,12 @@ async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)
 
 	return new Promise(async (resolve) => {
-		console.log(`Creating new question groups`);
-
 		const threeHoursAfterDate = moment(new Date()).add(3, 'hours').toDate()
 		const gamesToCreate = await getGamesStartingBefore(threeHoursAfterDate);
+
+		if (_.size(gamesToCreate) == 0) {
+			console.log('No games found to be created');
+		}
 
 		await Bluebird.each(gamesToCreate, async (nbaGame) => {
 			await createQuestionGroup(nbaGame)
@@ -47,12 +49,12 @@ async function createQuestionGroup(nbaGame) {
 	const nbaGameId = _.get(nbaGame, "id");
 	const nbaGameHome = _.get(nbaGame, "homeTeam");
 	const nbaGameAway = _.get(nbaGame, "awayTeam");
-	const questionGroupAway = await QuestionGroup.query().where({
+	const questionGroups = await QuestionGroup.query().where({
 		nba_game_id: nbaGameId
 	})
 	const gameName = _.get(nbaGame, ["awayTeam", "fullName"]) + " @ " + _.get(nbaGame, ["homeTeam", "fullName"]);
 
-	if (_.size(questionGroupAway) === 0) {
+	if (_.size(questionGroups) === 0) {
 		const awayTeam = await QuestionGroup.query().insertGraphAndFetch({
 			channelId: _.get(nbaGameAway, ["channel", "id"]),
 			nba_game_id: nbaGameId,
