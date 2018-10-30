@@ -10,6 +10,7 @@ services:
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./src:/usr/local/airflow/src
+            - ./node_modules:/usr/local/airflow/node_modules
             # Uncomment to include custom plugins
             - ./plugins:/usr/local/airflow/plugins
         ports:
