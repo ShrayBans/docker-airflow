@@ -53,4 +53,9 @@ async function run() {
 
 }
 
-run().then(process.exit);
+run().then(() => {
+	process.exit(0)
+})
+.catch(() => {
+	process.exit(1)
+});

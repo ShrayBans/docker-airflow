@@ -18,6 +18,8 @@ const DATABASE_CONN = process.env.DATABASE_API_CONNECTION;
 
 run().then(() => {
 	process.exit(0)
+}).catch(() => {
+	process.exit(1)
 });
 
 async function getGamesStartingBefore(date = new Date()) {
@@ -62,6 +64,7 @@ async function run() {
 			const nbaGameTitle = _.find(nbaStreamPostsTitles, (nbaStreamTitle) => {
 				return _.includes(nbaStreamTitle, queryStringTitle)
 			})
+
 			if (!nbaGameTitle) {
 				console.log(`NBA Game not loaded: ${queryStringTitle}`);
 			} else {
@@ -74,7 +77,7 @@ async function run() {
 			return {
 				redditPostId,
 				redditPostUrl,
-				nbaGame
+				nbaGame,
 			}
 		})
 
@@ -83,24 +86,31 @@ async function run() {
 			const redditPostId = _.get(redditNbaStreamGame, "redditPostId")
 			const nbaGame = _.get(redditNbaStreamGame, "nbaGame")
 			const url = `https://old.reddit.com${redditPostUrl}`
-			console.log('url', url);
 
-			htmlToScrape = await axios.get(url);
-			nbaStreamUrls = extractPostData(htmlToScrape)
+			if (url) {
+				htmlToScrape = await axios.get(url);
+				nbaStreamUrls = extractPostData(htmlToScrape)
 
-			const coreStreamUrls = await Bluebird.map(nbaStreamUrls, async (nbaStreamUrl) => {
-				htmlToScrape = await axios.get(nbaStreamUrl);
-				return extractStreamData(htmlToScrape)
-			})
+				const coreStreamUrls = await Bluebird.map(nbaStreamUrls, async (nbaStreamUrl) => {
+					htmlToScrape = await axios.get(nbaStreamUrl);
+					return extractStreamData(htmlToScrape)
+				})
 
-			const sortedCoreStreamUrls = coreStreamUrls.slice().sort((a, b) => a.localeCompare(b, undefined, {
-				numeric: true
-			}))
+				if (_.size(coreStreamUrls) > 0) {
+					const sortedCoreStreamUrls = coreStreamUrls.slice().sort((a, b) => a.localeCompare(b, undefined, {
+						numeric: true
+					}))
 
-			// Update the NbaGame with streams link
-			await nbaGame.$query().patch({
-				stream_link: _.head(sortedCoreStreamUrls)
-			});
+					// Update the NbaGame with streams link
+					await nbaGame.$query().patch({
+						stream_link: _.head(sortedCoreStreamUrls)
+					});
+				} else {
+					console.log('No NBA Stream Urls found on the page');
+				}
+			} else {
+				console.log('No url defined for' + _.get(nbaGame, ["awayTeam", "fullName"]) + " @ " + _.get(nbaGame, ["homeTeam", "fullName"]));
+			}
 		})
 
 		return resolve(true)
