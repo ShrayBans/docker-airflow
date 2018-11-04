@@ -18,7 +18,8 @@ const DATABASE_CONN = process.env.DATABASE_API_CONNECTION;
 
 run().then(() => {
 	process.exit(0)
-}).catch(() => {
+}).catch((err) => {
+	console.error(err);
 	process.exit(1)
 });
 

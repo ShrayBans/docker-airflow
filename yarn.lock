@@ -2575,10 +2575,10 @@ simple-swizzle@^0.2.2:
   dependencies:
     is-arrayish "^0.3.1"
 
-sixthman-objection-models@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/sixthman-objection-models/-/sixthman-objection-models-1.0.5.tgz#d0a4333ef72ccb0879404d322b98648ee76635d8"
-  integrity sha512-mfcoScIRJqXqVE9jaSfD//9lyEY41FImxElaE3wI67RI/ZiVdyFVD3Qf5+QcmiKsV2xp0JIAJyffJjXD8EkURQ==
+sixthman-objection-models@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/sixthman-objection-models/-/sixthman-objection-models-1.0.6.tgz#8bb837c2e8a70d9dd858e6d47dcf39a8081148e0"
+  integrity sha512-oBrM9WGGOtYxUGAtM5A3ekknCrNIe0Lh+6ihCGGnyQJ3R6gLYVPBvl/qMxDAlWeBNKPBdfJ11+WYPEkR9WkFuA==
   dependencies:
     aguid "^2.0.0"
     axios "^0.18.0"

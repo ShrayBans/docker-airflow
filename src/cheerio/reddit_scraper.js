@@ -24,7 +24,8 @@ let foundOldPosts = false;
 
 run().then(() => {
 	process.exit(0)
-}).catch(() => {
+}).catch((err) => {
+	console.error(err);
 	process.exit(1)
 });
 
