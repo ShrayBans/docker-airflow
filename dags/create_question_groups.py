@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
+from airflow.hooks.base_hook import BaseHook
 
 
 default_args = {
@@ -18,12 +19,15 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
+SIXTHMAN_PROD = BaseHook.get_connection("sixthman_prod")
+SIXTHMAN_CONN_PASSWORD = SIXTHMAN_PROD.password
+
 dag = DAG("create_question_groups", default_args=default_args, schedule_interval=timedelta(hours=1), catchup=False)
 
 
 t1 = BashOperator(
     task_id="create_question_groups",
-    bash_command="DATABASE_API_CONNECTION=postgres://sixthman:lebrunsux123@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman node /usr/local/airflow/src/load_jobs/create_new_question_groups.js",
+    bash_command=f"DATABASE_API_CONNECTION=postgres://sixthman:{SIXTHMAN_CONN_PASSWORD}@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman node /usr/local/airflow/src/load_jobs/create_new_question_groups.js",
     pool="create_new_question_groups",
     retries=3,
     dag=dag
