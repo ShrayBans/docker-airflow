@@ -44,30 +44,33 @@ async function run() {
 		console.log('latestPost', latestPost);
 		redditFeed = [latestPost];
 	}
+	return new Promise((resolve, reject) => {
+		try {
+			console.log('Starting Reddit NBA scraper!');
 
-	return new Promise((resolve) => {
-		console.log('Starting Reddit NBA scraper!');
+			const interval = setInterval(async () => {
+					if (PAGES_TO_SCRAPE <= 0 || foundOldPosts) {
+						console.log("Max page limit has been reached or the scraper has found old posts!");
+						clearInterval(interval)
+						return resolve(true)
+					}
 
-		const interval = setInterval(async () => {
-				if (PAGES_TO_SCRAPE <= 0 || foundOldPosts) {
-					console.log("Max page limit has been reached or the scraper has found old posts!");
-					clearInterval(interval)
-					return resolve(true)
-				}
+					lastElementId = _.get(_.last(redditFeed), "redditPostId", "")
+					PAGES_TO_SCRAPE--;
+					paginatedUrl = `https://old.reddit.com/r/${SUBREDDIT}/?count=25&after=${lastElementId}`
+					console.log('paginatedUrl', paginatedUrl);
 
-				lastElementId = _.get(_.last(redditFeed), "redditPostId", "")
-				PAGES_TO_SCRAPE--;
-				paginatedUrl = `https://old.reddit.com/r/${SUBREDDIT}/?count=25&after=${lastElementId}`
-				console.log('paginatedUrl', paginatedUrl);
+					htmlToScrape = await axios.get(paginatedUrl);
+					redditFeed = extractFeedData(htmlToScrape)
 
-				htmlToScrape = await axios.get(paginatedUrl);
-				redditFeed = extractFeedData(htmlToScrape)
+					await insertRedditPostCollection(redditFeed);
 
-				await insertRedditPostCollection(redditFeed);
-
-			},
-			getRandomInterval(TIME_INTERVAL, TIME_INTERVAL))
-	})
+				},
+				getRandomInterval(TIME_INTERVAL, TIME_INTERVAL))
+			} catch (err) {
+				reject(err)
+			}
+		})
 }
 
 function extractFeedData(htmlToScrape) {

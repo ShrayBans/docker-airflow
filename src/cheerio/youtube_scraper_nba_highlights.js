@@ -68,9 +68,9 @@ async function run() {
 				await updateNbaGameWithHighlights(nbaHighlight);
 			})
 
-			return resolve(true)
+			return resolve(true);
 		} catch (err) {
-			reject(err)
+			reject(err);
 		}
 	});
 }

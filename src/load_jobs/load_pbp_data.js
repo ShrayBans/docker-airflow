@@ -47,33 +47,37 @@ run().then(() => {
 async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)
 
-	return new Promise((resolve) => {
-		const randomInterval = getRandomInterval();
-		let lock = false;
-		console.log(`Starting NBA Play by Play scraper with random interval of ${randomInterval / 1000 } seconds`);
+	return new Promise((resolve, reject) => {
+		try {
+			const randomInterval = getRandomInterval();
+			let lock = false;
+			console.log(`Starting NBA Play by Play scraper with random interval of ${randomInterval / 1000 } seconds`);
 
-		const interval = setInterval(async () => {
-			if (lock === false) {
-				lock = true;
-				const thirtyMinuteAfterDate = moment(new Date()).add(30, 'minutes').toDate()
-				const gamesToPull = await getGamesStartingBefore(thirtyMinuteAfterDate);
-				const filteredGamesToPull = _.chain(gamesToPull).orderBy("gameDatetime").slice(0, 10).value()
+			const interval = setInterval(async () => {
+				if (lock === false) {
+					lock = true;
+					const thirtyMinuteAfterDate = moment(new Date()).add(30, 'minutes').toDate()
+					const gamesToPull = await getGamesStartingBefore(thirtyMinuteAfterDate);
+					const filteredGamesToPull = _.chain(gamesToPull).orderBy("gameDatetime").slice(0, 10).value()
 
-				if (!_.size(filteredGamesToPull)) {
-					clearInterval(interval)
-					return resolve(true)
+					if (!_.size(filteredGamesToPull)) {
+						clearInterval(interval)
+						return resolve(true)
+					}
+
+					console.log(`${_.size(filteredGamesToPull)} games left to find play by plays for!`);
+
+					// If quarter has completed, then send a message to Redis Pub Sub and change status to next quarter (not_started, 1, 2, 3, 4, 5, completed)
+					const playByPlayCollectionSets = await Bluebird.map(filteredGamesToPull, async (gameObject) => scrapePlayByPlayCollection(gameObject))
+					await Bluebird.each(playByPlayCollectionSets, async (scrapedGamePlayByPlays) => {
+						await insertPlayByPlay(scrapedGamePlayByPlays)
+					})
+					lock = false;
 				}
-
-				console.log(`${_.size(filteredGamesToPull)} games left to find play by plays for!`);
-
-				// If quarter has completed, then send a message to Redis Pub Sub and change status to next quarter (not_started, 1, 2, 3, 4, 5, completed)
-				const playByPlayCollectionSets = await Bluebird.map(filteredGamesToPull, async (gameObject) => scrapePlayByPlayCollection(gameObject))
-				await Bluebird.each(playByPlayCollectionSets, async (scrapedGamePlayByPlays) => {
-					await insertPlayByPlay(scrapedGamePlayByPlays)
-				})
-				lock = false;
-			}
-		}, randomInterval)
+			}, randomInterval)
+		} catch (err) {
+			reject(error)
+		}
 	})
 }
 

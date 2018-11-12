@@ -45,7 +45,7 @@ async function run() {
 	// 	redditFeed = [latestPost];
 	// }
 
-	return new Promise(async (resolve) => {
+	return new Promise(async (resolve, reject) => {
 		console.log('Starting Instagram NBA scraper!');
 
 		// const interval = setInterval(async () => {

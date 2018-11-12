@@ -24,19 +24,23 @@ run().then(() => {
 async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)
 
-	return new Promise(async (resolve) => {
-		const threeHoursAfterDate = moment(new Date()).add(3, 'hours').toDate()
-		const gamesToCreate = await getGamesStartingBefore(threeHoursAfterDate);
+	return new Promise(async (resolve, reject) => {
+		try {
+			const threeHoursAfterDate = moment(new Date()).add(3, 'hours').toDate()
+			const gamesToCreate = await getGamesStartingBefore(threeHoursAfterDate);
 
-		if (_.size(gamesToCreate) == 0) {
-			console.log('No games found to be created');
+			if (_.size(gamesToCreate) == 0) {
+				console.log('No games found to be created');
+			}
+
+			await Bluebird.each(gamesToCreate, async (nbaGame) => {
+				await createQuestionGroup(nbaGame)
+			});
+
+			return resolve(true)
+		} catch (err) {
+			reject(err);
 		}
-
-		await Bluebird.each(gamesToCreate, async (nbaGame) => {
-			await createQuestionGroup(nbaGame)
-		});
-
-		return resolve(true)
 	})
 }
 

@@ -47,74 +47,78 @@ async function run() {
 	let htmlToScrape;
 	let nbaStreamUrls;
 
-	return new Promise(async (resolve) => {
-		console.log('Starting Reddit NBA scraper!');
+	return new Promise(async (resolve, reject) => {
+		try {
+			console.log('Starting Reddit NBA Stream Comments scraper!');
 
-		// Check all games that are in the next 2 hours and don't have a reddit_link
-		const oneDayBeforeDate = moment(new Date()).subtract(1, 'day').toDate()
-		const nbastreamPosts = await getRedditPostsAfter(oneDayBeforeDate)
-		const nbaStreamPostsMap = _.keyBy(nbastreamPosts, "title")
-		const nbaStreamPostsTitles = _.map(nbastreamPosts, "title")
+			// Check all games that are in the next 2 hours and don't have a reddit_link
+			const oneDayBeforeDate = moment(new Date()).subtract(1, 'day').toDate()
+			const nbastreamPosts = await getRedditPostsAfter(oneDayBeforeDate)
+			const nbaStreamPostsMap = _.keyBy(nbastreamPosts, "title")
+			const nbaStreamPostsTitles = _.map(nbastreamPosts, "title")
 
-		const thirtyMinuteAfterDate = moment(new Date()).add(30, 'minutes').toDate()
-		const currentNbaGames = await getGamesStartingBefore(thirtyMinuteAfterDate);
+			const thirtyMinuteAfterDate = moment(new Date()).add(30, 'minutes').toDate()
+			const currentNbaGames = await getGamesStartingBefore(thirtyMinuteAfterDate);
 
-		const redditNbaStreamGameCollection = _.map(currentNbaGames, (nbaGame) => {
-			const queryStringTitle = _.get(nbaGame, ["awayTeam", "fullName"]) + " @ " + _.get(nbaGame, ["homeTeam", "fullName"])
+			const redditNbaStreamGameCollection = _.map(currentNbaGames, (nbaGame) => {
+				const queryStringTitle = _.get(nbaGame, ["awayTeam", "fullName"]) + " @ " + _.get(nbaGame, ["homeTeam", "fullName"])
 
-			const nbaGameTitle = _.find(nbaStreamPostsTitles, (nbaStreamTitle) => {
-				return _.includes(nbaStreamTitle, queryStringTitle)
-			})
-
-			if (!nbaGameTitle) {
-				console.log(`NBA Game not loaded: ${queryStringTitle}`);
-			} else {
-				console.log('nbaGameTitle', nbaGameTitle);
-			}
-			const nbaStreamsRedditPost = _.get(nbaStreamPostsMap, nbaGameTitle);
-			const redditPostId = _.get(nbaStreamsRedditPost, "redditPostId")
-			const redditPostUrl = _.get(nbaStreamsRedditPost, "url")
-
-			return {
-				redditPostId,
-				redditPostUrl,
-				nbaGame,
-			}
-		})
-
-		await Bluebird.each(redditNbaStreamGameCollection, async (redditNbaStreamGame) => {
-			const redditPostUrl = _.get(redditNbaStreamGame, "redditPostUrl")
-			const redditPostId = _.get(redditNbaStreamGame, "redditPostId")
-			const nbaGame = _.get(redditNbaStreamGame, "nbaGame")
-			const url = `https://old.reddit.com${redditPostUrl}`
-
-			if (url) {
-				htmlToScrape = await axios.get(url);
-				nbaStreamUrls = extractPostData(htmlToScrape)
-
-				const coreStreamUrls = await Bluebird.map(nbaStreamUrls, async (nbaStreamUrl) => {
-					htmlToScrape = await axios.get(nbaStreamUrl);
-					return extractStreamData(htmlToScrape)
+				const nbaGameTitle = _.find(nbaStreamPostsTitles, (nbaStreamTitle) => {
+					return _.includes(nbaStreamTitle, queryStringTitle)
 				})
 
-				if (_.size(coreStreamUrls) > 0) {
-					const sortedCoreStreamUrls = coreStreamUrls.slice().sort((a, b) => a.localeCompare(b, undefined, {
-						numeric: true
-					}))
-
-					// Update the NbaGame with streams link
-					await nbaGame.$query().patch({
-						stream_link: _.head(sortedCoreStreamUrls)
-					});
+				if (!nbaGameTitle) {
+					console.log(`NBA Game not loaded: ${queryStringTitle}`);
 				} else {
-					console.log('No NBA Stream Urls found on the page');
+					console.log('nbaGameTitle', nbaGameTitle);
 				}
-			} else {
-				console.log('No url defined for' + _.get(nbaGame, ["awayTeam", "fullName"]) + " @ " + _.get(nbaGame, ["homeTeam", "fullName"]));
-			}
-		})
+				const nbaStreamsRedditPost = _.get(nbaStreamPostsMap, nbaGameTitle);
+				const redditPostId = _.get(nbaStreamsRedditPost, "redditPostId")
+				const redditPostUrl = _.get(nbaStreamsRedditPost, "url")
 
-		return resolve(true)
+				return {
+					redditPostId,
+					redditPostUrl,
+					nbaGame,
+				}
+			})
+
+			await Bluebird.each(redditNbaStreamGameCollection, async (redditNbaStreamGame) => {
+				const redditPostUrl = _.get(redditNbaStreamGame, "redditPostUrl")
+				const redditPostId = _.get(redditNbaStreamGame, "redditPostId")
+				const nbaGame = _.get(redditNbaStreamGame, "nbaGame")
+				const url = `https://old.reddit.com${redditPostUrl}`
+
+				if (url) {
+					htmlToScrape = await axios.get(url);
+					nbaStreamUrls = extractPostData(htmlToScrape)
+
+					const coreStreamUrls = await Bluebird.map(nbaStreamUrls, async (nbaStreamUrl) => {
+						htmlToScrape = await axios.get(nbaStreamUrl);
+						return extractStreamData(htmlToScrape)
+					})
+
+					if (_.size(coreStreamUrls) > 0) {
+						const sortedCoreStreamUrls = coreStreamUrls.slice().sort((a, b) => a.localeCompare(b, undefined, {
+							numeric: true
+						}))
+
+						// Update the NbaGame with streams link
+						await nbaGame.$query().patch({
+							stream_link: _.head(sortedCoreStreamUrls)
+						});
+					} else {
+						console.log('No NBA Stream Urls found on the page');
+					}
+				} else {
+					console.log('No url defined for' + _.get(nbaGame, ["awayTeam", "fullName"]) + " @ " + _.get(nbaGame, ["homeTeam", "fullName"]));
+				}
+			})
+
+			return resolve(true);
+		} catch (err) {
+			reject(err)
+		}
 	})
 
 }
