@@ -40,7 +40,7 @@ async function run() {
 		try {
 			const thirtyMinuteAfterDate = moment(new Date()).add(30, 'minutes').toDate()
 			const gamesToPull = await getGamesStartingBefore(thirtyMinuteAfterDate);
-			const filteredGamesToPull = _.chain(gamesToPull).orderBy("gameDatetime").slice(0, 10).value()
+			const filteredGamesToPull = _.chain(gamesToPull).orderBy("gameDatetime").slice(0, 5).value()
 			console.log('filteredGamesToPull', filteredGamesToPull);
 
 			const boxScoreCollectionSets = await Bluebird.map(filteredGamesToPull, async (gameObject) => scrapeBothTeamBoxScores(gameObject))
