@@ -76,7 +76,7 @@ async function run() {
 				}
 			}, randomInterval)
 		} catch (err) {
-			reject(error)
+			reject(err)
 		}
 	})
 }
