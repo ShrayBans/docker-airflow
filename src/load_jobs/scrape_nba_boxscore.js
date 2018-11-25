@@ -80,18 +80,18 @@ async function scrapeBothTeamBoxScores(gameObject) {
 	const gameId = _.get(gameObject, "id");
 	const awayTeamId = _.get(gameObject, "awayTeamId");
 	const homeTeamId = _.get(gameObject, "homeTeamId");
-	const fields = ["PLAYER_ID", "FGM", "FGA", "FG3M", "FG3A", "OREB", "DREB", "REB", "AST", "TOV", "STL", "BLK", "PF", "PTS", "PLUS_MINUS", "NBA_FANTASY_PTS" ];
+	const fields = ["PLAYER_ID", "FGM", "FGA", "FG3M", "FG3A", "FTM", "FTA", "OREB", "DREB", "REB", "AST", "TOV", "STL", "BLK", "PF", "PTS", "PLUS_MINUS", "NBA_FANTASY_PTS" ];
 	const results = [];
 	const labelByIndex = {}
 
 	HOME_URL_TO_SCRAPE = `https://stats.nba.com/stats/teamplayerdashboard?DateFrom=${pstDate}&DateTo=${pstDate}&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=${awayTeamId}&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlusMinus=N&Rank=N&Season=2018-19&SeasonSegment=&SeasonType=Regular+Season&TeamId=${homeTeamId}&VsConference=&VsDivision=`
-	AWAY_URL_TO_SCRAPE = `https://stats.nba.com/stats/teamplayerdashboard?DateFrom=${pstDate}&DateTo=${pstDate}&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=${homeTeamId}&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlusMinus=N&Rank=N&Season=2018-19&SeasonSegment=&SeasonType=Regular Season&TeamId=${awayTeamId}&VsConference=&VsDivision=`
+	AWAY_URL_TO_SCRAPE = `https://stats.nba.com/stats/teamplayerdashboard?DateFrom=${pstDate}&DateTo=${pstDate}&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Base&Month=0&OpponentTeamID=${homeTeamId}&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlusMinus=N&Rank=N&Season=2018-19&SeasonSegment=&SeasonType=Regular+Season&TeamId=${awayTeamId}&VsConference=&VsDivision=`
 	const urls = [{ teamType: "home", teamId: homeTeamId, url: HOME_URL_TO_SCRAPE}, { teamType: "away", teamId: awayTeamId, url: AWAY_URL_TO_SCRAPE}];
 
 	const boxScores = await Bluebird.map(urls, async(urlObj) => {
 		let boxScoreRaw;
 		try {
-			console.log('0', 0);
+			console.log('URL_TO_SCRAPE', _.get(urlObj, "url"));
 			boxScoreRaw = await axios.get(_.get(urlObj, "url"));
 			console.log('1', 1);
 			results.push(boxScoreRaw);
