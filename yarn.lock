@@ -65,6 +65,13 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.12.1.tgz#da61b64a2930a80fa708e57c45cd5441eb379d5b"
   integrity sha512-i1sl+WCX2OCHeUi9oi7PiCNUtYFrpWhpcx878vpeq/tlZTKzcFdHePlyFHVbWqeuKN0SRPl/9ZFDSTsfv9h7VQ==
 
+"@types/redis@^2.8.0":
+  version "2.8.10"
+  resolved "https://registry.yarnpkg.com/@types/redis/-/redis-2.8.10.tgz#27130c3bcc803265a51cb978538ca330dff2e748"
+  integrity sha512-X0NeV3ivoif2SPsmuPhwTkKfcr1fDJlaJIOyxZ9/TCIEbvzMzmZlstqCZ5r7AOolbOJtAfvuGArNXMexYYH3ng==
+  dependencies:
+    "@types/node" "*"
+
 "@types/strip-bom@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@types/strip-bom/-/strip-bom-3.0.0.tgz#14a8ec3956c2e81edb7520790aecf21c290aebd2"
@@ -2525,6 +2532,15 @@ rimraf@2, rimraf@^2.6.1:
   dependencies:
     glob "^7.0.5"
 
+rsmq@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/rsmq/-/rsmq-0.10.0.tgz#6a286286db675037c58481db31198fca100b835a"
+  integrity sha512-rsr5Z3oUqNhG8A5Fgwt6S2uxLabDKfaNsbQGnZh6QDMaucZaFLgWgGjT7XHkuco2uRm6ZnmFVkIlMYAoQneVYw==
+  dependencies:
+    "@types/redis" "^2.8.0"
+    lodash "^4.17.10"
+    redis "^2.8.0"
+
 safe-buffer@^5.0.1, safe-buffer@^5.1.2, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.2.tgz#991ec69d296e0313747d59bdfd2b745c35f8828d"
@@ -2599,10 +2615,10 @@ simple-swizzle@^0.2.2:
   dependencies:
     is-arrayish "^0.3.1"
 
-sixthman-objection-models@^1.0.8:
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/sixthman-objection-models/-/sixthman-objection-models-1.0.8.tgz#541a3d9f220e8112a8e43fa1fa7c654362d65ecd"
-  integrity sha512-ZEm773Hvg9MrYC6NOmfxk+8IqHCK+5sBO46vb3B8+1Y95kxryb+k2RtamUJzHRmHc8Z2XjynG1dKOR8d83TnPQ==
+sixthman-objection-models@1.0.11:
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/sixthman-objection-models/-/sixthman-objection-models-1.0.11.tgz#c3c6465bd64aff6187e323554f5d509789ef0f05"
+  integrity sha512-qoYimuM1nplIpLoq8oabW8q9KkaBWZB1yhl056PYPLhI0/KKpq/tRSotWzLgIT+16wWQekQUSSqZUuUGD7wQjw==
   dependencies:
     aguid "^2.0.0"
     axios "^0.18.0"

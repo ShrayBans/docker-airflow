@@ -67,10 +67,10 @@ async function run() {
 
 				},
 				getRandomInterval(TIME_INTERVAL, TIME_INTERVAL))
-			} catch (err) {
-				reject(err)
-			}
-		})
+		} catch (err) {
+			reject(err)
+		}
+	})
 }
 
 function extractFeedData(htmlToScrape) {

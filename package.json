@@ -19,7 +19,8 @@
     "objection": "^1.3.0",
     "puppeteer": "^1.9.0",
     "redis": "^2.8.0",
-    "sixthman-objection-models": "^1.0.8"
+    "rsmq": "^0.10.0",
+    "sixthman-objection-models": "1.0.11"
   },
   "repository": {
     "type": "git",
