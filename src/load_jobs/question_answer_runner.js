@@ -6,18 +6,20 @@ const RedisQueue = require("../lib/redis-queue")
 const Bluebird = require("bluebird")
 const _ = require("lodash")
 const moment = require('moment-timezone');
-const {
-	transaction,
-	Model
-} = require("objection");
 
 const automatedQuestionCache = {}
 
 const {
 	NbaAutomatedQuestion,
 	QuestionGroup,
-	NbaPlayByPlay
+	NbaAutomatedAnswer,
+	NbaPlayByPlay,
+	Base
 } = require("sixthman-objection-models")
+
+const {
+	transaction
+} = require("objection");
 
 run().then(() => {
 	process.exit(0)
@@ -68,6 +70,7 @@ async function callbackFunc(result) {
 	// Optimization added by adding a local cache, which allows us to add where clause to not pull IDs in the cache
 	const cachedQuestionIds = _.keys(automatedQuestionCache)
 	const unansweredQuestions = await getUnansweredAutomatedQuestions(cachedQuestionIds);
+	console.log('unansweredQuestions', unansweredQuestions);
 
 	_.forEach(unansweredQuestions, (unansweredQuestion) => {
 		_.set(automatedQuestionCache, _.get(unansweredQuestion, "id"), unansweredQuestion);
@@ -108,10 +111,11 @@ async function callbackFunc(result) {
 				}
 			}
 		}
-
-		console.log('correctAnswer', correctAnswer);
-		if (!_)
+		console.log('!!correctAnswer', !!correctAnswer);
+		// console.log('correctAnswer', correctAnswer);
+		if (correctAnswer) {
 			await updateQuestionAndAnswerValues(unansweredQuestion, correctAnswer);
+		}
 		// Update the question (close and answer), automated_question, automated_answer, answer with the correct answer,
 	});
 
@@ -124,28 +128,28 @@ async function callbackFunc(result) {
 
 async function updateQuestionAndAnswerValues(unansweredQuestion, correctAnswer) {
 	console.log('unansweredQuestion', unansweredQuestion);
-	// return transaction(Model.knex(), async () => {
+	return transaction(Base.knex(), async (trx) => {
 
-	const question = _.get(unansweredQuestion, "question");
-	await question.$query().patch({
-		status: "answered"
-	});
+		const question = _.get(unansweredQuestion, "question");
+		await question.$query(trx).patch({
+			status: "answered"
+		});
 
-	await unansweredQuestion.$query().patch({
-		status: "answered"
-	});
+		await unansweredQuestion.$query(trx).patch({
+			status: "answered"
+		});
 
-	const answer = _.get(correctAnswer, "answer");
-	await answer.$query().patch({
-		status: "correct"
-	});
+		const answer = _.get(correctAnswer, "answer");
+		await answer.$query(trx).patch({
+			status: "correct"
+		});
 
-	const correctAnswerId = _.get(correctAnswer, "id");
-	await NbaAutomatedAnswer.query().findById(correctAnswerId).patch({
-		status: "correct"
+		const correctAnswerId = _.get(correctAnswer, "id");
+		await NbaAutomatedAnswer.query(trx).findById(correctAnswerId).patch({
+			status: "correct"
+		});
+		console.log('correctAnswer', correctAnswer);
 	});
-	console.log('correctAnswer', correctAnswer);
-	// });
 }
 
 async function calculateCorrectAnswer(unansweredQuestion) {
