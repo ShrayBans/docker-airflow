@@ -21,12 +21,12 @@ const {
 	transaction
 } = require("objection");
 
-run().then(() => {
-	process.exit(0)
-}).catch((err) => {
-	console.error(err);
-	process.exit(1)
-});
+// run().then(() => {
+// 	process.exit(0)
+// }).catch((err) => {
+// 	console.error(err);
+// 	process.exit(1)
+// });
 
 /**
  * This job should run every hour.
@@ -34,14 +34,17 @@ run().then(() => {
 async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)
 
+	await questionAnswerRunner();
+}
+
+async function questionAnswerRunner(queueName = "myqueue") {
 	return new Promise(async (resolve, reject) => {
 		try {
 			// Keep going until games are over
 
-			const queueName = "myqueue"
 			const redisQueue = new RedisQueue("127.0.0.1", 6379)
 
-			await redisQueue.runRSMQConsumer(queueName, callbackFunc);
+			await redisQueue.runRSMQConsumer(queueName, evaluateNbaEventMessage);
 
 			return resolve(true)
 		} catch (err) {
@@ -64,13 +67,12 @@ async function getUnansweredAutomatedQuestions(excludedQuestionIds) {
 		.whereNotIn("id", excludedQuestionIds || [])
 }
 
-async function callbackFunc(result) {
+async function evaluateNbaEventMessage(result) {
 	const receivedEvent = _.get(result, "message");
 
 	// Optimization added by adding a local cache, which allows us to add where clause to not pull IDs in the cache
 	const cachedQuestionIds = _.keys(automatedQuestionCache)
 	const unansweredQuestions = await getUnansweredAutomatedQuestions(cachedQuestionIds);
-	console.log('unansweredQuestions', unansweredQuestions);
 
 	_.forEach(unansweredQuestions, (unansweredQuestion) => {
 		_.set(automatedQuestionCache, _.get(unansweredQuestion, "id"), unansweredQuestion);
@@ -81,7 +83,8 @@ async function callbackFunc(result) {
 
 	await Bluebird.each(allQuestionValues, async (unansweredQuestion) => {
 		const periodName = _.get(unansweredQuestion, ["automatedPeriod", "periodName"]);
-		let correctAnswer;
+		const modeName = _.get(unansweredQuestion, ["automatedMode", "modeName"]);
+		let enrichedAutomatedAnswers;
 
 		// If end of period, Split based on quarter and then question period
 		if (_.get(receivedEvent, "event_msg_type") === 13) {
@@ -89,32 +92,33 @@ async function callbackFunc(result) {
 
 			if (eventQuarter === 4) {
 				if (periodName === "full_game") {
-					correctAnswer = await calculateCorrectAnswer(unansweredQuestion);
+					enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
 				} else if (periodName === "second_half") {
-					correctAnswer = await calculateCorrectAnswer(unansweredQuestion);
+					enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
 				} else if (periodName === "fourth_quarter") {
-					correctAnswer = await calculateCorrectAnswer(unansweredQuestion);
+					enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
 				}
 			} else if (eventQuarter === 2) {
 				if (periodName === "second_quarter") {
-					correctAnswer = await calculateCorrectAnswer(unansweredQuestion);
+					enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
 				} else if (periodName === "first_half") {
-					correctAnswer = await calculateCorrectAnswer(unansweredQuestion);
+					enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
 				}
 			} else if (eventQuarter === 1) {
 				if (periodName === "first_quarter") {
-					correctAnswer = await calculateCorrectAnswer(unansweredQuestion);
+					enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
 				}
 			} else if (eventQuarter === 3) {
 				if (periodName === "third_quarter") {
-					correctAnswer = await calculateCorrectAnswer(unansweredQuestion)
+					enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion)
 				}
 			}
 		}
-		console.log('!!correctAnswer', !!correctAnswer);
-		// console.log('correctAnswer', correctAnswer);
-		if (correctAnswer) {
-			await updateQuestionAndAnswerValues(unansweredQuestion, correctAnswer);
+
+		const correctAnswer = enrichedAutomatedAnswers ? selectCorrectAutomatedAnswer(enrichedAutomatedAnswers, modeName) : undefined;
+		console.log('correctAnswer', correctAnswer);
+		if (!_.isEmpty(correctAnswer)) {
+			await updateQuestionAndAnswerValues(unansweredQuestion, correctAnswer, enrichedAutomatedAnswers);
 		}
 		// Update the question (close and answer), automated_question, automated_answer, answer with the correct answer,
 	});
@@ -126,16 +130,15 @@ async function callbackFunc(result) {
 	return true;
 }
 
-async function updateQuestionAndAnswerValues(unansweredQuestion, correctAnswer) {
-	console.log('unansweredQuestion', unansweredQuestion);
+async function updateQuestionAndAnswerValues(unansweredAutomatedQuestion, correctAnswer, enrichedAutomatedAnswers) {
 	return transaction(Base.knex(), async (trx) => {
-
-		const question = _.get(unansweredQuestion, "question");
+		const question = _.get(unansweredAutomatedQuestion, "question");
 		await question.$query(trx).patch({
+			isClosed: true, // Question should already be closed, but this is to double check
 			status: "answered"
 		});
 
-		await unansweredQuestion.$query(trx).patch({
+		await unansweredAutomatedQuestion.$query(trx).patch({
 			status: "answered"
 		});
 
@@ -143,16 +146,21 @@ async function updateQuestionAndAnswerValues(unansweredQuestion, correctAnswer) 
 		await answer.$query(trx).patch({
 			status: "correct"
 		});
+		console.log('enrichedAutomatedAnswers', enrichedAutomatedAnswers);
 
-		const correctAnswerId = _.get(correctAnswer, "id");
-		await NbaAutomatedAnswer.query(trx).findById(correctAnswerId).patch({
-			status: "correct"
-		});
-		console.log('correctAnswer', correctAnswer);
+		await Bluebird.each(enrichedAutomatedAnswers, async (automatedAnswer) => {
+			console.log('automatedAnswer', automatedAnswer);
+			const correctAnswerId = _.get(correctAnswer, "id");
+			const automatedAnswerId = _.get(automatedAnswer, "id");
+			await NbaAutomatedAnswer.query(trx).findById(automatedAnswerId).patch({
+				status: automatedAnswerId === correctAnswerId ? "correct" : "incorrect",
+				statValue: _.get(automatedAnswer, "statValue", 0),
+			});
+		})
 	});
 }
 
-async function calculateCorrectAnswer(unansweredQuestion) {
+async function enrichAutomatedAnswers(unansweredQuestion) {
 	const periodName = _.get(unansweredQuestion, ["automatedPeriod", "periodName"]);
 	const modeName = _.get(unansweredQuestion, ["automatedMode", "modeName"]);
 	const statName = _.get(unansweredQuestion, ["stat", "statName"]);
@@ -185,13 +193,12 @@ async function calculateCorrectAnswer(unansweredQuestion) {
 		return _.assign({}, automatedAnswer, calc);
 	});
 
-	const correctAnswer = selectCorrectAutomatedAnswer(enrichedAutomatedAnswers, modeName);
-
-	return correctAnswer;
+	return enrichedAutomatedAnswers;
 }
 
 function selectCorrectAutomatedAnswer(enrichedAutomatedAnswers, modeName) {
 	let correctAutomatedAnswer = {};
+	console.log('enrichedAutomatedAnswers', enrichedAutomatedAnswers);
 	_.forEach(enrichedAutomatedAnswers, (automatedAnswer) => {
 		// TODO: Decide how to handle cases where stats equal each other
 
@@ -211,7 +218,7 @@ function selectCorrectAutomatedAnswer(enrichedAutomatedAnswers, modeName) {
 			}
 		}
 	})
-
+	console.log('correctAutomatedAnswer', correctAutomatedAnswer);
 	return correctAutomatedAnswer;
 }
 
@@ -267,4 +274,8 @@ function applyPeriodFilter(pbpQuery, periodName) {
 	} else if (periodName === "third_quarter") {
 		pbpQuery.whereIn("quarter", [3])
 	}
+}
+
+module.exports = {
+	evaluateNbaEventMessage
 }

@@ -1,5 +1,8 @@
 const RedisSMQ = require("rsmq");
 const _ = require("lodash");
+const Bluebird = require("bluebird")
+
+process.env.DEBUG = false;
 
 class RedisQueue {
     constructor(host, port) {
@@ -21,7 +24,9 @@ class RedisQueue {
                 console.log(`queue created: ${queueName}`)
             }
         } catch (err) {
-            console.error('err', err);
+            if (process.env.DEBUG == "true") {
+                console.log(`${err.name}: ${queueName}`);
+            }
         }
     }
 
@@ -32,7 +37,9 @@ class RedisQueue {
                 message: JSON.stringify(msg)
             });
             if (message) {
-                console.log("Message sent. ID:", message);
+                if (process.env.DEBUG == "true") {
+                    console.log("Message sent. ID:", message);
+                }
             }
             return message;
         } catch (err) {
@@ -56,7 +63,32 @@ class RedisQueue {
                     return receivedMessage;
                 }, 5);
 
-                console.log('DONE');
+                if (process.env.DEBUG == "true") {
+                    console.log('DONE');
+                }
+            } catch (err) {
+                reject(err)
+            }
+        })
+    }
+
+    async runSpecRSMQConsumer(queueName, callback, count = 100) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                await Bluebird.each(_.times(count), async () => {
+                    // const receivedMessages = [];
+                    const receivedMessage = await this.receiveRedisQueueMsg(queueName);
+
+                    if (_.get(receivedMessage, "messageId")) {
+                        await callback(receivedMessage)
+                        await this.deleteRedisQueueMsg(queueName, _.get(receivedMessage, "messageId"));
+                    }
+
+
+                    return receivedMessage;
+                })
+
+                resolve("Done with Spec Consumer")
             } catch (err) {
                 reject(err)
             }
@@ -72,7 +104,9 @@ class RedisQueue {
 
             const parsedMessage = JSON.parse(_.get(received, "message"));
             if (parsedMessage.id) {
-                // console.log("Message received.", parsedMessage)
+                if (process.env.DEBUG == "true") {
+                    console.log("Message received.", parsedMessage)
+                }
             }
 
             return {
@@ -92,10 +126,14 @@ class RedisQueue {
                     id: messageId
                 }, function(err, resp) {
                     if (resp === 1) {
-                        console.log(`Message ${messageId} deleted.`)
+                        if (process.env.DEBUG == "true") {
+                            console.log(`Message ${messageId} deleted.`)
+                        }
                         return resolve(true)
                     } else {
-                        console.log(`Message ${messageId} not found.`)
+                        if (process.env.DEBUG == "true") {
+                            console.log(`Message ${messageId} not found.`)
+                        }
                         return reject(err)
                     }
                 });
