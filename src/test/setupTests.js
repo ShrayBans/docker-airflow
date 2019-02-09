@@ -39,10 +39,13 @@ beforeAll(() => {
             if (!tableName) {
                 [schema, tableName] = ["core", schema];
             }
-            tablesToClean.add({
-                schema,
-                tableName
-            });
+            const tablesToIgnore = ["player", "team", "game", "stat", "automated_mode", "automated_period", "play_by_play"]
+            if (!(schema == "nba" && _.includes(tablesToIgnore, tableName))) {
+                tablesToClean.add({
+                    schema,
+                    tableName
+                });
+            }
         }
     });
 });

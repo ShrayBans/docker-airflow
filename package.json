@@ -4,7 +4,11 @@
   "description": "[![CircleCI branch](https://img.shields.io/circleci/project/puckel/docker-airflow/master.svg?maxAge=2592000)](https://circleci.com/gh/puckel/docker-airflow/tree/master) [![Docker Build Status](https://img.shields.io/docker/build/puckel/docker-airflow.svg)]()",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "scheduledQuestionCreator": "source env.sh && ./node_modules/ts-node-dev/bin/ts-node-dev --respawn --transpileOnly ./src/test/scheduledQuestionCreator.ts",
+    "scheduledQuestionGroupCreator": "source env.sh && node ./src/load_jobs/create_new_question_groups.js",
+    "scheduledNbaRedisStatsCalculator": "source env.sh && node ./src/load_jobs/load_rolling_player_stats.js",
+    "scrapeBoxScore": "source env.sh && node ./src/load_jobs/scrape_nba_boxscore.js"
   },
   "dependencies": {
     "axios": "^0.18.0",
@@ -27,7 +31,7 @@
     "puppeteer": "^1.9.0",
     "redis": "^2.8.0",
     "rsmq": "^0.10.0",
-    "sixthman-objection-models": "1.0.12",
+    "sixthman-objection-models": "1.0.13",
     "ts-jest": "^23.10.5"
   },
   "repository": {
@@ -44,6 +48,7 @@
     "@types/bluebird": "^3.5.5",
     "@types/jest": "^24.0.0",
     "@types/lodash": "^4.14.120",
+    "ts-node-dev": "^1.0.0-pre.32",
     "typescript": "^3.3.3"
   }
 }

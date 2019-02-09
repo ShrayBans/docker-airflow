@@ -116,7 +116,7 @@ async function evaluateNbaEventMessage(result) {
 		}
 
 		const correctAnswer = enrichedAutomatedAnswers ? selectCorrectAutomatedAnswer(enrichedAutomatedAnswers, modeName) : undefined;
-		console.log('correctAnswer', correctAnswer);
+
 		if (!_.isEmpty(correctAnswer)) {
 			await updateQuestionAndAnswerValues(unansweredQuestion, correctAnswer, enrichedAutomatedAnswers);
 		}
@@ -146,10 +146,8 @@ async function updateQuestionAndAnswerValues(unansweredAutomatedQuestion, correc
 		await answer.$query(trx).patch({
 			status: "correct"
 		});
-		console.log('enrichedAutomatedAnswers', enrichedAutomatedAnswers);
 
 		await Bluebird.each(enrichedAutomatedAnswers, async (automatedAnswer) => {
-			console.log('automatedAnswer', automatedAnswer);
 			const correctAnswerId = _.get(correctAnswer, "id");
 			const automatedAnswerId = _.get(automatedAnswer, "id");
 			await NbaAutomatedAnswer.query(trx).findById(automatedAnswerId).patch({
@@ -188,6 +186,7 @@ async function enrichAutomatedAnswers(unansweredQuestion) {
 		const playsPbps = await pbpQuery;
 
 		const enrichedPlayByPlays = applyStatEnrichment(playsPbps, statName);
+
 		const calc = applyModeCalculation(enrichedPlayByPlays, modeName);
 
 		return _.assign({}, automatedAnswer, calc);
@@ -198,7 +197,7 @@ async function enrichAutomatedAnswers(unansweredQuestion) {
 
 function selectCorrectAutomatedAnswer(enrichedAutomatedAnswers, modeName) {
 	let correctAutomatedAnswer = {};
-	console.log('enrichedAutomatedAnswers', enrichedAutomatedAnswers);
+
 	_.forEach(enrichedAutomatedAnswers, (automatedAnswer) => {
 		// TODO: Decide how to handle cases where stats equal each other
 
@@ -218,7 +217,6 @@ function selectCorrectAutomatedAnswer(enrichedAutomatedAnswers, modeName) {
 			}
 		}
 	})
-	console.log('correctAutomatedAnswer', correctAutomatedAnswer);
 	return correctAutomatedAnswer;
 }
 
@@ -233,8 +231,8 @@ function applyModeCalculation(playsPbps, modeName) {
 }
 
 function applyStatEnrichment(playsPbps, statName) {
-	if (statName === "points") {
-		return _.map(playsPbps, (playsPbp) => {
+	return _.map(playsPbps, (playsPbp) => {
+		if (statName === "points") {
 			if (_.includes(_.get(playsPbp, "description"), "Free Throw")) {
 				return _.assign({}, playsPbp, {
 					statValue: 1
@@ -248,13 +246,56 @@ function applyStatEnrichment(playsPbps, statName) {
 					statValue: 2
 				})
 			}
-		});
-	}
+		} else if (statName === "rebound") {
+			return _.assign({}, playsPbp, {
+				statValue: 1
+			})
+		} else if (statName === "foul") {
+			return _.assign({}, playsPbp, {
+				statValue: 1
+			})
+		} else if (statName === "turnover") {
+			return _.assign({}, playsPbp, {
+				statValue: 1
+			})
+		} else if (statName === "ejection") {
+			return _.assign({}, playsPbp, {
+				statValue: 1
+			})
+		} else if (statName === "free_throw") {
+			return _.assign({}, playsPbp, {
+				statValue: 1
+			})
+		} else if (statName === "field_goal") {
+			return _.assign({}, playsPbp, {
+				statValue: 1
+			})
+		} else if (statName === "three_pointer") {
+			return _.assign({}, playsPbp, {
+				statValue: 1
+			})
+		}
+	});
+
 }
 
 function applyStatFilter(pbpQuery, statName) {
 	if (statName === "points") {
 		pbpQuery.whereIn("event_msg_type", [1, 3]).whereLike("description", "%PTS)")
+	} else if (statName === "rebound") {
+		pbpQuery.where("event_msg_type", 4)
+	} else if (statName === "foul") {
+		pbpQuery.whereIn("event_msg_type", [4, 5]).whereLike("description", "%PF)")
+	} else if (statName === "turnover") {
+		pbpQuery.where("event_msg_type", 5)
+	} else if (statName === "ejection") {
+		pbpQuery.where("event_msg_type", 11)
+	} else if (statName === "free_throw") {
+		pbpQuery.where("event_msg_type", 3).whereLike("description", "%PTS)")
+	} else if (statName === "field_goal") {
+		pbpQuery.where("event_msg_type", 1).whereRaw("description NOT LIKE '%3pt%'")
+	} else if (statName === "three_pointer") {
+		pbpQuery.where("event_msg_type", 1).whereLike("description", "%3pt%")
 	}
 }
 

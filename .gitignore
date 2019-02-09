@@ -31,3 +31,5 @@ docker-compose-LocalExecutor.yml-E
 docker-compose-prod.yml-E
 
 node_modules/
+
+env.sh

@@ -105,7 +105,7 @@ export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
         const createdAutomatedQuestion = await NbaAutomatedQuestion.query(trx).insertGraphAndFetch(
             automatedQuestionPayload
         );
-        _.set(createdQuestion, "automatedQuestion", createdAutomatedQuestion);
+        _.set(createdQuestion, "nbaAutomatedQuestion", createdAutomatedQuestion);
 
         return createdQuestion;
     });

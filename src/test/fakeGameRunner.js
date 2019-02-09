@@ -22,7 +22,8 @@ async function fakeGameRunner(queueName = "myqueue", pathToGameJson) {
             game_id: _.get(playByPlayInfo, "game_id"),
             quarter: _.get(playByPlayInfo, "quarter"),
             clock: _.get(playByPlayInfo, "clock"),
-            event_msg_type: _.get(playByPlayInfo, "event_msg_type")
+            event_msg_type: _.get(playByPlayInfo, "event_msg_type"),
+            description: _.get(playByPlayInfo, "description")
         });
         if (!nbaPlayByPlay) {
             nbaPlayByPlay = await NbaPlayByPlay.query().insert(playByPlayInfo);

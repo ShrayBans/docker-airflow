@@ -37,8 +37,6 @@ export async function bootstrapNbaAutomatedPlayer() {
     const targetTable = "nba.player";
     if (_.size(nbaPlayers) === 0) {
         await loadCsvToPgTable(targetTable, "../resources/player.csv", columns);
-        const test = await NbaPlayer.query().limit(5);
-        console.log("test", test);
     }
 }
 export async function bootstrapNbaAutomatedGame() {
@@ -52,6 +50,8 @@ export async function bootstrapNbaAutomatedGame() {
         "status",
         "created_at",
         "stream_link",
+        "youtube_highlight",
+        "boxscore_scraped",
     ];
     const nbaGames = await NbaGame.query().limit(5);
     const targetTable = "nba.game";

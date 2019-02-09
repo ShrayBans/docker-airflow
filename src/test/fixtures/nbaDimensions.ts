@@ -27,18 +27,18 @@ export async function bootstrapNbaAutomatedPeriod() {
 
 export async function bootstrapNbaAutomatedStat() {
     const nbaAutomatedStats: Partial<NbaStat>[] = [
-        { statName: "points", description: "Points" },
-        { statName: "free_throw", description: "Free Throw" },
-        { statName: "free_throw_pct", description: "Free Throw Percentage" },
-        { statName: "field_goal", description: "Field Goal" },
-        { statName: "field_goal_pct", description: "Field Goal Percentage" },
-        { statName: "three_pointer", description: "Three Pointer" },
-        { statName: "three_pointer_pct", description: "Three Pointer Percentage" },
-        { statName: "rebound", description: "Rebound" },
-        { statName: "foul", description: "Foul" },
-        { statName: "turnover", description: "Turnover" },
-        { statName: "ejection", description: "Ejection" },
-        { statName: "assist", description: "Assist" },
+        { abbrev: "pts", statName: "points", description: "Points" },
+        { abbrev: "ftm", statName: "free_throw", description: "Free Throw" },
+        { abbrev: "ftPct", statName: "free_throw_pct", description: "Free Throw Percentage" },
+        { abbrev: "fgm", statName: "field_goal", description: "Field Goal" },
+        { abbrev: "fgPct", statName: "field_goal_pct", description: "Field Goal Percentage" },
+        { abbrev: "fg3m", statName: "three_pointer", description: "Three Pointer" },
+        { abbrev: "fg3Pct", statName: "three_pointer_pct", description: "Three Pointer Percentage" },
+        { abbrev: "reb", statName: "rebound", description: "Rebound" },
+        { abbrev: "pf", statName: "foul", description: "Foul" },
+        { abbrev: "tov", statName: "turnover", description: "Turnover" },
+        { abbrev: "eje", statName: "ejection", description: "Ejection" },
+        { abbrev: "ast", statName: "assist", description: "Assist" },
     ];
     await NbaStat.query().insert(nbaAutomatedStats);
 }

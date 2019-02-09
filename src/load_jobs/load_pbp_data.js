@@ -37,12 +37,12 @@ const eventMsgMap = {
 }
 
 run().then(() => {
-	process.exit(0)
-})
-.catch((err) => {
-	console.error(err);
-	process.exit(1)
-});
+		process.exit(0)
+	})
+	.catch((err) => {
+		console.error(err);
+		process.exit(1)
+	});
 
 async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)
@@ -192,6 +192,7 @@ async function insertPlayByPlay(scrapedPlayByPlayGame) {
 			let nbaPlayByPlay = await NbaPlayByPlay.query().findOne({
 				game_id: gameId,
 				quarter: quarterToPull,
+				description,
 				clock,
 				event_msg_type: eventMsgType
 			});
