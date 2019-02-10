@@ -1,10 +1,7 @@
-const redis = require("redis");
-const {
-    Base
-} = require("sixthman-objection-models")
-const _ = require("lodash")
+import _ from "lodash";
+import * as redis from "redis";
 
-function createRedisClient(host, port) {
+export function createRedisClient(host, port) {
     const client = redis.createClient({
         host: host,
         port: Number(port) || 6379,
@@ -12,7 +9,7 @@ function createRedisClient(host, port) {
     return client;
 }
 
-async function hmsetRedisClient(redisClient, key, object) {
+export async function hmsetRedisClient(redisClient, key, object) {
     const flattenedObject = _.flatMap(object, (value, key) => {
         return [key, JSON.stringify(value)];
     });
@@ -22,7 +19,7 @@ async function hmsetRedisClient(redisClient, key, object) {
         //@ts-ignore
         redisClient.hmset(hmsetObject, (err, data) => {
             if (err) {
-                console.error('err', err);
+                console.error("err", err);
                 reject(err);
             }
 
@@ -31,7 +28,7 @@ async function hmsetRedisClient(redisClient, key, object) {
     });
 }
 
-async function hmgetRedisClient(redisClient, key, hashKey) {
+export async function hmgetRedisClient(redisClient, key, hashKey) {
     return new Promise((resolve, reject) => {
         //@ts-ignore
         redisClient.hmget([key, hashKey], (err, data) => {
@@ -53,11 +50,4 @@ async function hmgetRedisClient(redisClient, key, hashKey) {
             }
         });
     });
-}
-
-
-module.exports = {
-    createRedisClient: createRedisClient,
-    hmsetRedisClient: hmsetRedisClient,
-    hmgetRedisClient: hmgetRedisClient,
 }

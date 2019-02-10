@@ -1,10 +1,6 @@
-import * as Bluebird from 'bluebird';
-import * as _ from 'lodash';
-import { Model, transaction } from 'objection';
-import { NbaAutomatedQuestion, NbaGame, NbaPlayer, Question } from 'sixthman-objection-models';
-
-import { createAutomatedQuestion } from './automatedQuestionCreator';
-import { getNbaAutomatedModeId, getNbaAutomatedPeriodId, getNbaAutomatedStatId } from './fixtures/nbaDimensions';
+import * as Bluebird from "bluebird";
+import * as _ from "lodash";
+import { NbaGame, NbaPlayer } from "sixthman-objection-models";
 
 const moment = require("moment-timezone");
 const { instantiateKnex } = require("../lib/knex.js");

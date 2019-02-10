@@ -1,16 +1,16 @@
-import * as _ from 'lodash';
+import * as _ from "lodash";
 import {
     Channel,
     createChannelData,
     createQuestionGroupData,
     NbaAutomatedAnswer,
-    NbaPlayByPlay,
     QuestionGroup,
-} from 'sixthman-objection-models';
+} from "sixthman-objection-models";
 
-import { evaluateNbaEventMessage } from '../load_jobs/question_answer_runner';
-import { createAutomatedQuestion } from './automatedQuestionCreator';
-import { fakeGameRunner } from './fakeGameRunner';
+import { RedisQueue } from "../lib/RedisQueue";
+import { createAutomatedQuestion } from "./automatedQuestionCreator";
+import { fakeGameRunner } from "./fakeGameRunner";
+import { answerAutomatedQuestion } from "../services/answerAutomatedQuestion";
 import {
     bootstrapNbaAutomatedMode,
     bootstrapNbaAutomatedPeriod,
@@ -18,10 +18,8 @@ import {
     getNbaAutomatedModeId,
     getNbaAutomatedPeriodId,
     getNbaAutomatedStatId,
-} from './fixtures/nbaDimensions';
-import { bootstrapNbaAutomatedGame, bootstrapNbaAutomatedPlayer, bootstrapNbaAutomatedTeam } from './fixtures/nbaGames';
-
-const RedisQueue = require("../lib/redis-queue");
+} from "./fixtures/nbaDimensions";
+import { bootstrapNbaAutomatedGame, bootstrapNbaAutomatedPlayer, bootstrapNbaAutomatedTeam } from "./fixtures/nbaGames";
 
 describe("Question Group Services", async () => {
     let count = 0;
@@ -90,7 +88,7 @@ describe("Question Group Services", async () => {
 
             const { nbaAutomatedQuestion } = await createAutomatedQuestion(createAutomatedQuestionPayload);
 
-            await redisQueue.runSpecRSMQConsumer(redisQueueName, evaluateNbaEventMessage, 10);
+            await redisQueue.runSpecRSMQConsumer(redisQueueName, answerAutomatedQuestion, 10);
 
             const automatedAnswers = await NbaAutomatedAnswer.query().where({
                 automated_question_id: _.get(nbaAutomatedQuestion, "id"),
@@ -145,7 +143,7 @@ describe("Question Group Services", async () => {
 
             const { nbaAutomatedQuestion } = await createAutomatedQuestion(createAutomatedQuestionPayload);
 
-            await redisQueue.runSpecRSMQConsumer(redisQueueName, evaluateNbaEventMessage, 10);
+            await redisQueue.runSpecRSMQConsumer(redisQueueName, answerAutomatedQuestion, 10);
 
             const automatedAnswers = await NbaAutomatedAnswer.query().where({
                 automated_question_id: _.get(nbaAutomatedQuestion, "id"),
@@ -200,7 +198,7 @@ describe("Question Group Services", async () => {
 
             const { nbaAutomatedQuestion } = await createAutomatedQuestion(createAutomatedQuestionPayload);
 
-            await redisQueue.runSpecRSMQConsumer(redisQueueName, evaluateNbaEventMessage, 10);
+            await redisQueue.runSpecRSMQConsumer(redisQueueName, answerAutomatedQuestion, 10);
 
             const automatedAnswers = await NbaAutomatedAnswer.query().where({
                 automated_question_id: _.get(nbaAutomatedQuestion, "id"),
@@ -257,7 +255,7 @@ describe("Question Group Services", async () => {
 
             const { nbaAutomatedQuestion } = await createAutomatedQuestion(createAutomatedQuestionPayload);
 
-            await redisQueue.runSpecRSMQConsumer(redisQueueName, evaluateNbaEventMessage, 10);
+            await redisQueue.runSpecRSMQConsumer(redisQueueName, answerAutomatedQuestion, 10);
 
             const automatedAnswers = await NbaAutomatedAnswer.query().where({
                 automated_question_id: _.get(nbaAutomatedQuestion, "id"),
@@ -312,7 +310,7 @@ describe("Question Group Services", async () => {
 
             const { nbaAutomatedQuestion } = await createAutomatedQuestion(createAutomatedQuestionPayload);
 
-            await redisQueue.runSpecRSMQConsumer(redisQueueName, evaluateNbaEventMessage, 10);
+            await redisQueue.runSpecRSMQConsumer(redisQueueName, answerAutomatedQuestion, 10);
 
             const automatedAnswers = await NbaAutomatedAnswer.query().where({
                 automated_question_id: _.get(nbaAutomatedQuestion, "id"),
@@ -367,7 +365,7 @@ describe("Question Group Services", async () => {
 
             const { nbaAutomatedQuestion } = await createAutomatedQuestion(createAutomatedQuestionPayload);
 
-            await redisQueue.runSpecRSMQConsumer(redisQueueName, evaluateNbaEventMessage, 10);
+            await redisQueue.runSpecRSMQConsumer(redisQueueName, answerAutomatedQuestion, 10);
 
             const automatedAnswers = await NbaAutomatedAnswer.query().where({
                 automated_question_id: _.get(nbaAutomatedQuestion, "id"),
@@ -424,7 +422,7 @@ describe("Question Group Services", async () => {
 
             const { nbaAutomatedQuestion } = await createAutomatedQuestion(createAutomatedQuestionPayload);
 
-            await redisQueue.runSpecRSMQConsumer(redisQueueName, evaluateNbaEventMessage, 10);
+            await redisQueue.runSpecRSMQConsumer(redisQueueName, answerAutomatedQuestion, 10);
 
             const automatedAnswers = await NbaAutomatedAnswer.query().where({
                 automated_question_id: _.get(nbaAutomatedQuestion, "id"),
@@ -482,7 +480,7 @@ describe("Question Group Services", async () => {
 
             const { nbaAutomatedQuestion } = await createAutomatedQuestion(createAutomatedQuestionPayload);
 
-            await redisQueue.runSpecRSMQConsumer(redisQueueName, evaluateNbaEventMessage, 10);
+            await redisQueue.runSpecRSMQConsumer(redisQueueName, answerAutomatedQuestion, 10);
 
             const automatedAnswers = await NbaAutomatedAnswer.query().where({
                 automated_question_id: _.get(nbaAutomatedQuestion, "id"),
@@ -540,7 +538,7 @@ describe("Question Group Services", async () => {
 
             const { nbaAutomatedQuestion } = await createAutomatedQuestion(createAutomatedQuestionPayload);
 
-            await redisQueue.runSpecRSMQConsumer(redisQueueName, evaluateNbaEventMessage, 10);
+            await redisQueue.runSpecRSMQConsumer(redisQueueName, answerAutomatedQuestion, 10);
 
             const automatedAnswers = await NbaAutomatedAnswer.query().where({
                 automated_question_id: _.get(nbaAutomatedQuestion, "id"),
@@ -598,7 +596,7 @@ describe("Question Group Services", async () => {
 
             const { nbaAutomatedQuestion } = await createAutomatedQuestion(createAutomatedQuestionPayload);
 
-            await redisQueue.runSpecRSMQConsumer(redisQueueName, evaluateNbaEventMessage, 10);
+            await redisQueue.runSpecRSMQConsumer(redisQueueName, answerAutomatedQuestion, 10);
 
             const automatedAnswers = await NbaAutomatedAnswer.query().where({
                 automated_question_id: _.get(nbaAutomatedQuestion, "id"),

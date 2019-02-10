@@ -247,6 +247,11 @@ are-we-there-yet@~1.1.2:
     delegates "^1.0.0"
     readable-stream "^2.0.6"
 
+arg@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/arg/-/arg-4.1.0.tgz#583c518199419e0037abb74062c37f8519e575f0"
+  integrity sha512-ZWc51jO3qegGkVh8Hwpv636EkbesNV5ZNQPCtRa+0qytRYPEs9IYT9qITY9buezqUH5uqyzlWLcufrzU2rffdg==
+
 argparse@^1.0.7:
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/argparse/-/argparse-1.0.10.tgz#bcd6791ea5ae09725e17e5ad988134cd40b3d911"
@@ -4478,10 +4483,10 @@ simple-swizzle@^0.2.2:
   dependencies:
     is-arrayish "^0.3.1"
 
-sixthman-objection-models@1.0.13:
-  version "1.0.13"
-  resolved "https://registry.yarnpkg.com/sixthman-objection-models/-/sixthman-objection-models-1.0.13.tgz#8799de036f2c6e78d2a0b04d261671fc140dffe3"
-  integrity sha512-3U7vxnxKZew8tbyAp2Y/He/VNEyB2NYGMUwp1TqO7XcsfKrwPHr/WwIdYnf32pq9F6/Da+2B0fMdSDFoH6gCdA==
+sixthman-objection-models@1.0.14:
+  version "1.0.14"
+  resolved "https://registry.yarnpkg.com/sixthman-objection-models/-/sixthman-objection-models-1.0.14.tgz#0ddcede75814042dc925b020ae8a6adf840286f8"
+  integrity sha512-xVPL7srG3K+aiP5HdLUV79I6Lhw8lHOpkZV4MtPrAFBORtrIcY4L5hBsYunzceZyoTH8329p/qWVX94XRi8f/w==
   dependencies:
     aguid "^2.0.0"
     axios "^0.18.0"
@@ -4979,6 +4984,17 @@ ts-node@*:
     source-map-support "^0.5.6"
     yn "^2.0.0"
 
+ts-node@^8.0.2:
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-8.0.2.tgz#9ecdf8d782a0ca4c80d1d641cbb236af4ac1b756"
+  integrity sha512-MosTrinKmaAcWgO8tqMjMJB22h+sp3Rd1i4fdoWY4mhBDekOwIAKI/bzmRi7IcbCmjquccYg2gcF6NBkLgr0Tw==
+  dependencies:
+    arg "^4.1.0"
+    diff "^3.1.0"
+    make-error "^1.1.1"
+    source-map-support "^0.5.6"
+    yn "^3.0.0"
+
 tsconfig@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/tsconfig/-/tsconfig-7.0.0.tgz#84538875a4dc216e5c4a5432b3a4dec3d54e91b7"
@@ -5334,3 +5350,8 @@ yn@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/yn/-/yn-2.0.0.tgz#e5adabc8acf408f6385fc76495684c88e6af689a"
   integrity sha1-5a2ryKz0CPY4X8dklWhMiOavaJo=
+
+yn@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/yn/-/yn-3.0.0.tgz#0073c6b56e92aed652fbdfd62431f2d6b9a7a091"
+  integrity sha512-+Wo/p5VRfxUgBUGy2j/6KX2mj9AYJWOHuhMjMcbBFc3y54o9/4buK1ksBvuiK01C3kby8DH9lSmJdSxw+4G/2Q==

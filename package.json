@@ -5,10 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "scheduledQuestionCreator": "source env.sh && ./node_modules/ts-node-dev/bin/ts-node-dev --respawn --transpileOnly ./src/test/scheduledQuestionCreator.ts",
+    "ts-node-dev": "./node-dev_modules/ts-node-dev/bin/ts-node --transpileOnly --respawn",
+    "scheduledQuestionCreator": "source env.sh && npx ts-node ./src/test/scheduledQuestionCreator.ts",
     "scheduledQuestionGroupCreator": "source env.sh && node ./src/load_jobs/create_new_question_groups.js",
     "scheduledNbaRedisStatsCalculator": "source env.sh && node ./src/load_jobs/load_rolling_player_stats.js",
-    "scrapeBoxScore": "source env.sh && node ./src/load_jobs/scrape_nba_boxscore.js"
+    "playByPlayEventConsumer": "source env.sh && npx ts-node ./src/load_jobs/playByPlayEventConsumer.ts",
+    "scrapeBoxScore": "source env.sh && npx ts-node ./src/load_jobs/scrapeNbaBoxscore.ts"
   },
   "dependencies": {
     "axios": "^0.18.0",
@@ -31,7 +33,7 @@
     "puppeteer": "^1.9.0",
     "redis": "^2.8.0",
     "rsmq": "^0.10.0",
-    "sixthman-objection-models": "1.0.13",
+    "sixthman-objection-models": "1.0.14",
     "ts-jest": "^23.10.5"
   },
   "repository": {
@@ -48,6 +50,7 @@
     "@types/bluebird": "^3.5.5",
     "@types/jest": "^24.0.0",
     "@types/lodash": "^4.14.120",
+    "ts-node": "^8.0.2",
     "ts-node-dev": "^1.0.0-pre.32",
     "typescript": "^3.3.3"
   }
