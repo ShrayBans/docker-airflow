@@ -39,7 +39,8 @@ beforeAll(() => {
             if (!tableName) {
                 [schema, tableName] = ["core", schema];
             }
-            const tablesToIgnore = ["player", "team", "game", "stat", "automated_mode", "automated_period", "play_by_play"]
+            const tablesToIgnore = ["player", "team", "game", , "play_by_play"]
+            // tablesToIgnore.push(["stat", "automated_mode", "automated_period"])
             if (!(schema == "nba" && _.includes(tablesToIgnore, tableName))) {
                 tablesToClean.add({
                     schema,

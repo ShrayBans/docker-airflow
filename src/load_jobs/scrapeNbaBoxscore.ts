@@ -7,7 +7,7 @@ import { NbaBoxScore, NbaGame } from "sixthman-objection-models";
 import { instantiateKnex } from "../lib/knex.js";
 import { runScript, loopingPromise } from "../lib/runUtils";
 
-runScript(nbaBoxscoreScraper);
+runScript(scrapeNbaBoxscore);
 
 /**
  * 1. After a game is finished, it is added to a redis queue: { gameId: 1, teamId, gameDate, status: completed}
@@ -16,7 +16,7 @@ runScript(nbaBoxscoreScraper);
  * 4. The data is transformed and
  */
 
-async function nbaBoxscoreScraper() {
+async function scrapeNbaBoxscore() {
     const intervalTime = 30000;
     await instantiateKnex(process.env.DATABASE_API_CONNECTION);
 

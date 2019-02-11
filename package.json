@@ -6,11 +6,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "ts-node-dev": "./node-dev_modules/ts-node-dev/bin/ts-node --transpileOnly --respawn",
-    "scheduledQuestionCreator": "source env.sh && npx ts-node ./src/test/scheduledQuestionCreator.ts",
-    "scheduledQuestionGroupCreator": "source env.sh && node ./src/load_jobs/create_new_question_groups.js",
-    "scheduledNbaRedisStatsCalculator": "source env.sh && node ./src/load_jobs/load_rolling_player_stats.js",
-    "playByPlayEventConsumer": "source env.sh && npx ts-node ./src/load_jobs/playByPlayEventConsumer.ts",
-    "scrapeBoxScore": "source env.sh && npx ts-node ./src/load_jobs/scrapeNbaBoxscore.ts"
+    "scheduledQuestionCreator": "npx ts-node ./src/test/scheduledQuestionCreator.ts",
+    "scheduledQuestionGroupCreator": "node ./src/load_jobs/create_new_question_groups.js",
+    "scheduledNbaRedisStatsCalculator": "node ./src/load_jobs/load_rolling_player_stats.js",
+    "playByPlayEventConsumer": "npx ts-node ./src/load_jobs/playByPlayEventConsumer.ts",
+    "loadRollingPlayerStats": "npx ts-node ./src/load_jobs/load_rolling_player_stats.ts",
+    "scrapeBoxScore": "npx ts-node ./src/load_jobs/scrapeNbaBoxscore.ts"
   },
   "dependencies": {
     "axios": "^0.18.0",

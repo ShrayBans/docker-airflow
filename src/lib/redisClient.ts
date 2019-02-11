@@ -1,4 +1,4 @@
-import _ from "lodash";
+import * as _ from "lodash";
 import * as redis from "redis";
 
 export function createRedisClient(host, port) {
@@ -9,15 +9,22 @@ export function createRedisClient(host, port) {
     return client;
 }
 
+/**
+ * This function will format and transform given inputs into:
+ * ["foobar", "foo", "bar", "x", "y"]
+ * @param redisClient
+ * @param key foobar
+ * @param object { foo: bar, x: y }
+ */
 export async function hmsetRedisClient(redisClient, key, object) {
     const flattenedObject = _.flatMap(object, (value, key) => {
         return [key, JSON.stringify(value)];
     });
-    const hmsetObject = [key].concat(flattenedObject);
+    const hmsetArray = [key].concat(flattenedObject);
 
     return new Promise((resolve, reject) => {
         //@ts-ignore
-        redisClient.hmset(hmsetObject, (err, data) => {
+        redisClient.hmset(hmsetArray, (err, data) => {
             if (err) {
                 console.error("err", err);
                 reject(err);
@@ -28,25 +35,35 @@ export async function hmsetRedisClient(redisClient, key, object) {
     });
 }
 
-export async function hmgetRedisClient(redisClient, key, hashKey) {
+/**
+ * This function will format and transform given inputs into: ["foobar", "foo", "bar", "x", "y"] for redis
+ * Redis turns ["bar", "y"]
+ * Functions zips hashKeyArray with redis Result to get { foo: "bar", x: "y"}
+ * @param redisClient
+ * @param key foobar
+ * @param hashKeyArray ["foo", "x"]
+ */
+export async function hmgetRedisClient(redisClient, key, hashKeyArray) {
+    const hmsetArray = [key].concat(hashKeyArray);
+
     return new Promise((resolve, reject) => {
-        //@ts-ignore
-        redisClient.hmget([key, hashKey], (err, data) => {
+        redisClient.hmget(hmsetArray, (err, data) => {
             if (err) {
                 console.error("err", err);
                 reject(err);
             }
-            let parsedData;
             if (_.head(data) === null) {
                 return resolve(undefined);
             } else {
                 try {
-                    parsedData = JSON.parse(data);
+                    const parsedData = _.map(data, datum => {
+                        return JSON.parse(datum);
+                    });
+                    const zippedObject = _.zipObject(hashKeyArray, parsedData);
+                    return resolve(zippedObject);
                 } catch (err) {
                     reject(err);
                 }
-
-                return resolve(parsedData);
             }
         });
     });

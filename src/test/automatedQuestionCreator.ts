@@ -1,28 +1,12 @@
-import * as _ from 'lodash';
-import { Model, transaction } from 'objection';
-import { NbaAutomatedQuestion, Question } from 'sixthman-objection-models';
-
-// async function run() {
-//     await instantiateKnex(process.env.DATABASE_API_CONNECTION);
-
-//     const createdQuestion = await createAutomatedQuestion();
-//     console.log("createdQuestion", createdQuestion);
-// }
-
-// run()
-//     .then(() => {
-//         process.exit(0);
-//     })
-//     .catch(err => {
-//         console.error(err);
-//         process.exit(1);
-//     });
+import * as _ from "lodash";
+import { Model, transaction } from "objection";
+import { NbaAutomatedQuestion, Question } from "sixthman-objection-models";
 
 export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
     const {
         channelId = 1,
         questionGroupId = 1,
-        questionName = "AUTOMATED: Who will have the most points in the 3rd quarter?",
+        questionName,
         pointWeight = 10,
         statId = 1,
         automatedModeId = 3,
@@ -53,6 +37,10 @@ export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
         ],
     } = createAutomatedQuestionPayload;
 
+    const usedQuestionName = questionName
+        ? questionName
+        : generateQuestionName(statId, automatedModeId, automatedPeriodId);
+
     const filteredAnswersPayload = _.map(answersPayload, answer => {
         answer.status = _.get(answer, "status", "incorrect");
         return _.pick(answer, ["value", "status"]);
@@ -62,7 +50,7 @@ export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
         const questionPayload = {
             channelId,
             questionGroupId,
-            name: questionName,
+            name: usedQuestionName,
             pointWeight,
             questionType,
             isClosed: false,
@@ -96,7 +84,7 @@ export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
             statId,
             automatedModeId,
             automatedPeriodId,
-            description: questionName,
+            description: usedQuestionName,
             gameId,
             // value, stat_value, status, automated_question_id, answer_id, stat_id, player_id, team_id
             automatedAnswers: mergedAnswers,
@@ -109,4 +97,15 @@ export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
 
         return createdQuestion;
     });
+}
+
+/**
+ * Generates a question name based on the params inputted (i.e. points, mode, period)
+ *  -> Who will get {MODE} {STAT} in the {PERIOD}
+ * @param statId
+ * @param automatedModeId
+ * @param automatedPeriodId
+ */
+function generateQuestionName(statId, automatedModeId, automatedPeriodId) {
+    return "test";
 }
