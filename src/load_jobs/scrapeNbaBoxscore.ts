@@ -18,6 +18,7 @@ runScript(scrapeNbaBoxscore);
 
 async function scrapeNbaBoxscore() {
     const intervalTime = 30000;
+    let count = 0;
     await instantiateKnex(process.env.DATABASE_API_CONNECTION);
 
     const exitCallback = async () => {
@@ -27,7 +28,8 @@ async function scrapeNbaBoxscore() {
         const gamesToPull = await getGamesStartingBefore(thirtyMinuteAfterDate);
 
         // When there are no filteredGames, exit
-        return !_.size(gamesToPull);
+        count++;
+        return !_.size(gamesToPull) || count === 10;
     };
 
     const mainCallback = async () => {
@@ -49,6 +51,9 @@ async function scrapeNbaBoxscore() {
 
         // flattedBoxScores: [[{}], [{}]]
         await Bluebird.each(flattenedBoxScores, async scrapedGameBoxScores => {
+            if (_.size(scrapedGameBoxScores) === 0) {
+                return;
+            }
             //@ts-ignore
             await Bluebird.each(scrapedGameBoxScores, async playerGameBoxScore => {
                 return insertPlayerBoxScore(playerGameBoxScore);

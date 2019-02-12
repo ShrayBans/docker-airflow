@@ -1,7 +1,17 @@
 import * as _ from "lodash";
 import { Model, transaction } from "objection";
-import { NbaAutomatedQuestion, Question } from "sixthman-objection-models";
+import {
+    NbaAutomatedQuestion,
+    Question,
+    NbaAutomatedMode,
+    NbaAutomatedPeriod,
+    NbaStat,
+} from "sixthman-objection-models";
 
+/**
+ * Creates an NbaAutomatedQuestion as well as a Question.
+ * @param createAutomatedQuestionPayload
+ */
 export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
     const {
         channelId = 1,
@@ -39,7 +49,7 @@ export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
 
     const usedQuestionName = questionName
         ? questionName
-        : generateQuestionName(statId, automatedModeId, automatedPeriodId);
+        : await generateQuestionName(statId, automatedModeId, automatedPeriodId);
 
     const filteredAnswersPayload = _.map(answersPayload, answer => {
         answer.status = _.get(answer, "status", "incorrect");
@@ -106,6 +116,33 @@ export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
  * @param automatedModeId
  * @param automatedPeriodId
  */
-function generateQuestionName(statId, automatedModeId, automatedPeriodId) {
-    return "test";
+export async function generateQuestionName(statId, automatedModeId, automatedPeriodId) {
+    const stat = await NbaStat.query().findById(statId);
+    const mode = await NbaAutomatedMode.query().findById(automatedModeId);
+    const period = await NbaAutomatedPeriod.query().findById(automatedPeriodId);
+
+    let transformedStat = _.get(stat, "sentenceFragment");
+    let transformedMode = _.get(mode, "sentenceFragment");
+    let transformedPeriod = _.get(period, "sentenceFragment");
+
+    // Transform Mode
+    if (_.endsWith(_.get(stat, "statName"), "pct")) {
+        if (_.get(mode, "modeName") === "greatest_total_stat") {
+            transformedMode = "get the highest";
+        } else if (_.get(mode, "modeName") === "lowest_total_stat") {
+            transformedMode = "get the lowest";
+        }
+    }
+
+    // Transform Period
+
+    // Transform Stat
+    if (
+        !_.endsWith(_.get(stat, "statName"), "pct") && // `free_throw_pct` Doesn't end in pct
+        !(_.get(mode, "modeName") === "first_stat" || _.get(mode, "modeName") === "last_stat") // mode is not `first_stat`
+    ) {
+        transformedStat = `${transformedStat}s`;
+    }
+
+    return `Who will ${transformedMode} ${transformedStat} ${transformedPeriod}?`;
 }

@@ -4483,10 +4483,10 @@ simple-swizzle@^0.2.2:
   dependencies:
     is-arrayish "^0.3.1"
 
-sixthman-objection-models@1.0.14:
-  version "1.0.14"
-  resolved "https://registry.yarnpkg.com/sixthman-objection-models/-/sixthman-objection-models-1.0.14.tgz#0ddcede75814042dc925b020ae8a6adf840286f8"
-  integrity sha512-xVPL7srG3K+aiP5HdLUV79I6Lhw8lHOpkZV4MtPrAFBORtrIcY4L5hBsYunzceZyoTH8329p/qWVX94XRi8f/w==
+sixthman-objection-models@1.0.15:
+  version "1.0.15"
+  resolved "https://registry.yarnpkg.com/sixthman-objection-models/-/sixthman-objection-models-1.0.15.tgz#f44d72c9b75142eced449f263023aba4d512f23e"
+  integrity sha512-CqW1lbpIP/tCCQC5pAsLQ92jphk/vTjyskZ1EcTr9MfRaj43+ybsOcwXqrLYv29pW51HTZEK+TvEIv8XPXdcfQ==
   dependencies:
     aguid "^2.0.0"
     axios "^0.18.0"

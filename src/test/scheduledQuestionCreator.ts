@@ -39,6 +39,7 @@ runScript(scheduledQuestionCreator);
 async function scheduledQuestionCreator() {
     await instantiateKnex(process.env.DATABASE_API_CONNECTION);
 
+    const quarterTrigger = "pregame";
     const redisClient = createRedisClient(process.env.REDIS_HOST, process.env.PORT);
 
     const mainCallback = async () => {
@@ -47,7 +48,6 @@ async function scheduledQuestionCreator() {
             // .add(30, "minutes")
             .toDate();
         const gamesToPull = await getGamesStartingBefore(thirtyMinuteAfterDate);
-        console.log("gamesToPull", gamesToPull);
         const nbaStats = await NbaStat.query();
         const nbaStatAbbrevs = _.map(nbaStats, "abbrev");
 
@@ -56,13 +56,12 @@ async function scheduledQuestionCreator() {
         await Bluebird.each(gamesToPull, async game => {
             const gameId: number = _.get(game, "id");
             const topPlayersPerStat = await pullTop4PlayersPerStat(redisClient, game, nbaStatAbbrevs);
-            console.log("topPlayersPerStat", topPlayersPerStat);
             _.set(gameByStatByPlayerMap, gameId, topPlayersPerStat);
 
-            await createAutomatedQuestionWrapper(gameId, topPlayersPerStat);
+            await createAutomatedQuestionWrapper(gameId, topPlayersPerStat, quarterTrigger);
         });
 
-        console.log("gameByStatByPlayerMap", gameByStatByPlayerMap);
+        // console.log("gameByStatByPlayerMap", gameByStatByPlayerMap);
     };
 
     await singlePromise(mainCallback);
@@ -135,6 +134,7 @@ async function getAllScheduledAutomatedQuestions(channelId, quarterTrigger) {
  * 5. Creates questions based on previous fields
  */
 async function createAutomatedQuestionWrapper(gameId, topStats, quarterTrigger = "pregame") {
+    console.log("gameId, topStats, quarterTrigger", gameId, quarterTrigger);
     const questionName = "";
 
     const questionGroups = QuestionGroup.query().where("nba_game_id", gameId);
@@ -144,48 +144,33 @@ async function createAutomatedQuestionWrapper(gameId, topStats, quarterTrigger =
         const channelId = _.get(questionGroup, "channelId");
 
         const scheduledAutomatedQuestions = await getAllScheduledAutomatedQuestions(channelId, quarterTrigger);
+        console.log("scheduledAutomatedQuestions", scheduledAutomatedQuestions);
         await Bluebird.each(scheduledAutomatedQuestions, async scheduledAutomatedQuestion => {
             const predictedPlayers = _.get(topStats, "pts");
+            // Transforms id into playerId
             const transformedPredictedPlayers = _.map(predictedPlayers, predictedPlayer => {
-                return _.assign({}, predictedPlayer, { playerId: _.get(predictedPlayer, "id"), id: undefined });
+                return {
+                    playerId: _.get(predictedPlayer, "id"),
+                    value: `${_.get(predictedPlayer, "firstName")} ${_.get(predictedPlayer, "lastName")}`,
+                    teamId: _.get(predictedPlayer, "teamId"),
+                };
             });
+
+            const createAutomatedQuestionPayload = {
+                channelId,
+                questionGroupId,
+                questionName,
+                pointWeight: _.get(scheduledAutomatedQuestion, "pointValue"),
+                statId: _.get(scheduledAutomatedQuestion, "statId"),
+                automatedModeId: _.get(scheduledAutomatedQuestion, "automatedModeId"),
+                automatedPeriodId: _.get(scheduledAutomatedQuestion, "automatedPeriodId"),
+                gameId,
+                questionType: "multi_choice",
+                answersPayload: transformedPredictedPlayers,
+            };
+
+            const createdQuestion = await createAutomatedQuestion(createAutomatedQuestionPayload);
         });
-
-        const createAutomatedQuestionPayload = {
-            channelId,
-            questionGroupId,
-            questionName,
-            pointWeight: 10,
-            statId: await getNbaAutomatedStatId("points"),
-            automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
-            automatedPeriodId: await getNbaAutomatedPeriodId("full_game"),
-            gameId,
-            questionType: "multi_choice",
-            answersPayload: [
-                {
-                    value: "LeBron James",
-                    playerId: 2544,
-                    teamId: 1610612747,
-                },
-                {
-                    value: "Stephen Curry",
-                    playerId: 201939,
-                    teamId: 1610612744,
-                },
-                {
-                    value: "Kevin Durant",
-                    playerId: 201142,
-                    teamId: 1610612744,
-                },
-                {
-                    value: "Andre Iguodala",
-                    playerId: 2738,
-                    teamId: 1610612744,
-                },
-            ],
-        };
-
-        const createdQuestion = await createAutomatedQuestion(createAutomatedQuestionPayload);
     });
 }
 
@@ -207,9 +192,7 @@ async function pullTop4PlayersPerStat(redisClient, game: NbaGame, statAbbrevs: s
 
     // Grabs redis keys from both teams to get Top 10 players per stat
     homeTeamPlayers = await hmgetRedisClient(redisClient, `teamId:${homeTeamId}:day:${pstDate}:top10`, statAbbrevs);
-    // console.log("homeTeamPlayers", homeTeamPlayers);
     awayTeamPlayers = await hmgetRedisClient(redisClient, `teamId:${awayTeamId}:day:${pstDate}:top10`, statAbbrevs);
-
     await Bluebird.each(statAbbrevs, async statAbbrev => {
         // Takes the top 2 of each stat from each team
         topHomeTeamPlayers = _.take(_.get(homeTeamPlayers, statAbbrev), 2);
