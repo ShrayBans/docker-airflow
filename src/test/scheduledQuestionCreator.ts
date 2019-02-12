@@ -1,6 +1,6 @@
 import * as Bluebird from "bluebird";
 import * as _ from "lodash";
-import { NbaGame, NbaPlayer, NbaStat, QuestionGroup } from "sixthman-objection-models";
+import { NbaGame, NbaPlayer, NbaStat, QuestionGroup, ScheduledNbaAutomatedQuestion } from "sixthman-objection-models";
 import { singlePromise, runScript } from "../lib/runUtils";
 
 import * as moment from "moment-timezone";
@@ -73,57 +73,63 @@ async function getAllPlayersByIds(playerIds) {
 
 async function getAllScheduledAutomatedQuestions(channelId, quarterTrigger) {
     // Period id dictates period as well as
-    const scheduledAutomatedQuestions = [
-        {
-            id: 0,
-            automatedPeriodId: await getNbaAutomatedStatId("points"),
-            automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
-            statId: await getNbaAutomatedPeriodId("full_game"),
-            channelId,
-            pointValue: 10,
-            stat: {},
-            automatedPeriod: {},
-            automatedMode: {},
-        },
-        {
-            id: 0,
-            automatedPeriodId: await getNbaAutomatedStatId("points"),
-            automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
-            statId: await getNbaAutomatedPeriodId("first_half"),
-            channelId,
-            pointValue: 10,
-            stat: {},
-            automatedPeriod: {},
-            automatedMode: {},
-        },
-        {
-            id: 0,
-            automatedPeriodId: await getNbaAutomatedStatId("rebound"),
-            automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
-            statId: await getNbaAutomatedPeriodId("full_game"),
-            channelId,
-            pointValue: 10,
-            stat: {},
-            automatedPeriod: {},
-            automatedMode: {},
-        },
-        {
-            id: 0,
-            automatedPeriodId: await getNbaAutomatedStatId("field_goal"),
-            automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
-            statId: await getNbaAutomatedPeriodId("full_game"),
-            channelId,
-            pointValue: 10,
-            stat: {},
-            automatedPeriod: {},
-            automatedMode: {},
-        },
-    ];
+    // const scheduledAutomatedQuestions = [
+    //     {
+    //         id: 0,
+    //         automatedPeriodId: await getNbaAutomatedStatId("points"),
+    //         automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
+    //         statId: await getNbaAutomatedPeriodId("full_game"),
+    //         channelId,
+    //         pointValue: 10,
+    //         stat: {},
+    //         automatedPeriod: {},
+    //         automatedMode: {},
+    //     },
+    //     {
+    //         id: 0,
+    //         automatedPeriodId: await getNbaAutomatedStatId("points"),
+    //         automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
+    //         statId: await getNbaAutomatedPeriodId("first_half"),
+    //         channelId,
+    //         pointValue: 10,
+    //         stat: {},
+    //         automatedPeriod: {},
+    //         automatedMode: {},
+    //     },
+    //     {
+    //         id: 0,
+    //         automatedPeriodId: await getNbaAutomatedStatId("rebound"),
+    //         automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
+    //         statId: await getNbaAutomatedPeriodId("full_game"),
+    //         channelId,
+    //         pointValue: 10,
+    //         stat: {},
+    //         automatedPeriod: {},
+    //         automatedMode: {},
+    //     },
+    //     {
+    //         id: 0,
+    //         automatedPeriodId: await getNbaAutomatedStatId("field_goal"),
+    //         automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
+    //         statId: await getNbaAutomatedPeriodId("full_game"),
+    //         channelId,
+    //         pointValue: 10,
+    //         stat: {},
+    //         automatedPeriod: {},
+    //         automatedMode: {},
+    //     },
+    // ];
 
-    // return ScheduledAutomatedQuestion.query().whereNull("channel_id").orWhere("channel_id", channelId).eager(`[stat, automatedPeriod, automatedMode]`);
+    console.log("channelId", channelId);
+    const scheduledQuestions = await ScheduledNbaAutomatedQuestion.query()
+        .whereNull("channel_id")
+        .orWhere("channel_id", channelId)
+        .eager(`[stat, automatedPeriod, automatedMode]`);
+
+    return _.filter(scheduledQuestions, scheduledQuestion => {
+        return _.get(scheduledQuestion, ["automatedPeriod", "quarterTrigger"]) === quarterTrigger;
+    });
     // join to automated_period and match up quarter_trigger
-
-    return scheduledAutomatedQuestions;
 }
 
 /**
@@ -135,7 +141,6 @@ async function getAllScheduledAutomatedQuestions(channelId, quarterTrigger) {
  */
 async function createAutomatedQuestionWrapper(gameId, topStats, quarterTrigger = "pregame") {
     console.log("gameId, topStats, quarterTrigger", gameId, quarterTrigger);
-    const questionName = "";
 
     const questionGroups = QuestionGroup.query().where("nba_game_id", gameId);
     // Creates a question per question group - TODO: Remove to make it one question group per
@@ -144,7 +149,7 @@ async function createAutomatedQuestionWrapper(gameId, topStats, quarterTrigger =
         const channelId = _.get(questionGroup, "channelId");
 
         const scheduledAutomatedQuestions = await getAllScheduledAutomatedQuestions(channelId, quarterTrigger);
-        console.log("scheduledAutomatedQuestions", scheduledAutomatedQuestions);
+
         await Bluebird.each(scheduledAutomatedQuestions, async scheduledAutomatedQuestion => {
             const predictedPlayers = _.get(topStats, "pts");
             // Transforms id into playerId
@@ -159,7 +164,6 @@ async function createAutomatedQuestionWrapper(gameId, topStats, quarterTrigger =
             const createAutomatedQuestionPayload = {
                 channelId,
                 questionGroupId,
-                questionName,
                 pointWeight: _.get(scheduledAutomatedQuestion, "pointValue"),
                 statId: _.get(scheduledAutomatedQuestion, "statId"),
                 automatedModeId: _.get(scheduledAutomatedQuestion, "automatedModeId"),

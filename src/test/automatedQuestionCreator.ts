@@ -1,11 +1,12 @@
 import * as _ from "lodash";
-import { Model, transaction } from "objection";
+import { transaction } from "objection";
 import {
-    NbaAutomatedQuestion,
-    Question,
+    Base,
     NbaAutomatedMode,
     NbaAutomatedPeriod,
+    NbaAutomatedQuestion,
     NbaStat,
+    Question,
 } from "sixthman-objection-models";
 
 /**
@@ -55,8 +56,19 @@ export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
         answer.status = _.get(answer, "status", "incorrect");
         return _.pick(answer, ["value", "status"]);
     });
+    const test = {
+        channelId,
+        questionGroupId,
+        name: usedQuestionName,
+        pointWeight,
+        questionType,
+        isClosed: false,
+        status: "unanswered",
+        closingType: "stat_automated",
+        answers: filteredAnswersPayload,
+    };
 
-    return transaction(Model.knex(), async trx => {
+    return transaction(Base.knex(), async trx => {
         const questionPayload = {
             channelId,
             questionGroupId,
@@ -88,6 +100,8 @@ export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
                 }
             });
         });
+        console.log("mergedAnswers", mergedAnswers);
+        return;
 
         const automatedQuestionPayload = {
             questionId: _.get(createdQuestion, "id"),
@@ -143,6 +157,10 @@ export async function generateQuestionName(statId, automatedModeId, automatedPer
     ) {
         transformedStat = `${transformedStat}s`;
     }
-
+    if (!transformedStat || !transformedPeriod) {
+        console.log("id", statId, automatedModeId, automatedPeriodId);
+        const output = `Who will ${transformedMode} ${transformedStat} ${transformedPeriod}?`;
+        console.log("output", output);
+    }
     return `Who will ${transformedMode} ${transformedStat} ${transformedPeriod}?`;
 }
