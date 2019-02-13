@@ -19,7 +19,7 @@ import {
     getNbaAutomatedPeriodId,
     getNbaAutomatedStatId,
 } from "./fixtures/nbaDimensions";
-import { bootstrapNbaAutomatedGame, bootstrapNbaAutomatedPlayer, bootstrapNbaAutomatedTeam } from "./fixtures/nbaGames";
+import { bootstrapNbaGame, bootstrapNbaPlayer, bootstrapNbaTeam } from "./fixtures/nbaGames";
 
 describe("Question Group Services", async () => {
     let count = 0;
@@ -35,9 +35,9 @@ describe("Question Group Services", async () => {
         await bootstrapNbaAutomatedMode();
         await bootstrapNbaAutomatedPeriod();
         await bootstrapNbaAutomatedStat();
-        await bootstrapNbaAutomatedTeam();
-        await bootstrapNbaAutomatedGame();
-        await bootstrapNbaAutomatedPlayer();
+        await bootstrapNbaTeam();
+        await bootstrapNbaGame();
+        await bootstrapNbaPlayer();
     });
     beforeEach(async () => {
         channel = await Channel.query().insert(createChannelData({ name: "Test Channel" }));

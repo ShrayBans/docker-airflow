@@ -2,7 +2,8 @@ import * as _ from "lodash";
 import { NbaGame, NbaPlayer, NbaTeam } from "sixthman-objection-models";
 import { loadCsvToPgTable } from "../../lib/csvUtils";
 
-export async function bootstrapNbaAutomatedTeam() {
+export async function bootstrapNbaTeam() {
+    console.log("Inserting Team Info into PG");
     const columns = ["id", "full_name", "nickname", "url_name", "tricode", "city", "division_name", "created_at"];
     const nbaTeams = await NbaTeam.query().limit(5);
     const targetTable = "nba.team";
@@ -10,7 +11,8 @@ export async function bootstrapNbaAutomatedTeam() {
         await loadCsvToPgTable(targetTable, "../test/resources/team.csv", columns);
     }
 }
-export async function bootstrapNbaAutomatedPlayer() {
+export async function bootstrapNbaPlayer() {
+    console.log("Inserting Player Info into PG");
     const columns = [
         "id",
         "first_name",
@@ -32,7 +34,8 @@ export async function bootstrapNbaAutomatedPlayer() {
         await loadCsvToPgTable(targetTable, "../test/resources/player.csv", columns);
     }
 }
-export async function bootstrapNbaAutomatedGame() {
+export async function bootstrapNbaGame() {
+    console.log("Inserting Game Info into PG");
     const columns = [
         "id",
         "home_team_id",

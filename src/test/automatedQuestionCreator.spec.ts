@@ -6,6 +6,7 @@ import {
     createQuestionGroupData,
     NbaAutomatedAnswer,
     NbaAutomatedQuestion,
+    NbaGame,
     Question,
     QuestionGroup,
 } from "sixthman-objection-models";
@@ -21,7 +22,14 @@ import {
     getNbaAutomatedPeriodId,
     getNbaAutomatedStatId,
 } from "./fixtures/nbaDimensions";
-import { bootstrapNbaAutomatedGame, bootstrapNbaAutomatedPlayer, bootstrapNbaAutomatedTeam } from "./fixtures/nbaGames";
+import { bootstrapNbaGame, bootstrapNbaPlayer, bootstrapNbaTeam } from "./fixtures/nbaGames";
+import { pullTop4PlayersPerStat } from "./pullPredictionStats";
+import * as warriorsLakersPredictions from "./resources/warriors-lakers-predictions.json";
+
+// @ts-ignore
+jest.mock("./pullPredictionStats", () => ({
+    pullTop4PlayersPerStat: jest.fn().mockImplementation(() => Promise.resolve(warriorsLakersPredictions)),
+}));
 
 describe("Question Group Services", async () => {
     let count = 0;
@@ -31,12 +39,13 @@ describe("Question Group Services", async () => {
     let channelId;
     let questionGroup;
     let questionGroupId;
+    let nbaGame;
 
     beforeAll(async () => {
         redisQueue = new RedisQueue("127.0.0.1", 6379);
-        await bootstrapNbaAutomatedTeam();
-        await bootstrapNbaAutomatedGame();
-        await bootstrapNbaAutomatedPlayer();
+        await bootstrapNbaTeam();
+        await bootstrapNbaGame();
+        await bootstrapNbaPlayer();
     });
     beforeEach(async () => {
         await bootstrapNbaAutomatedMode();
@@ -44,15 +53,17 @@ describe("Question Group Services", async () => {
         await bootstrapNbaAutomatedStat();
         channel = await Channel.query().insert(createChannelData({ name: "Test Channel" }));
         channelId = _.get(channel, "id");
-        questionGroup = await QuestionGroup.query().insert(
-            createQuestionGroupData({ channelId: channel.id, name: "Test Question Group" })
-        );
+        questionGroup = await QuestionGroup.query().insert({
+            ...createQuestionGroupData({ channelId: channel.id, name: "Test Question Group" }),
+            nbaGameId: 21800500,
+        });
         questionGroupId = _.get(questionGroup, "id");
+        nbaGame = await NbaGame.query().findById(21800500);
 
         await fakeGameRunner(redisQueueName, "./resources/warriors-lakers.json");
     });
 
-    describe("Automated Question and Answer Saving", async () => {
+    describe("#createAutomatedQuestion", async () => {
         it("Creates Question and Automated Question", async () => {
             const createAutomatedQuestionPayload = {
                 channelId,
@@ -95,14 +106,15 @@ describe("Question Group Services", async () => {
             const automatedQuestions = await NbaAutomatedQuestion.query().where({
                 id: _.get(nbaAutomatedQuestion, "id"),
             });
-            expect(automatedQuestions).toHaveLength(1);
-            expect(_.head(automatedQuestions).id).toEqual(createdQuestionId);
-
             const question = await Question.query().where({
                 question_group_id: questionGroupId,
             });
+
+            expect(automatedQuestions).toHaveLength(1);
+            expect(_.head(question).id).toEqual(createdQuestionId);
+
             expect(question).toHaveLength(1);
-            expect(_.head(question).id).toEqual(_.get(nbaAutomatedQuestion, "id"));
+            expect(_.head(automatedQuestions).id).toEqual(_.get(nbaAutomatedQuestion, "id"));
         });
 
         it("Creates Answers and Automated Answers", async () => {

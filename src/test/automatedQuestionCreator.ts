@@ -100,8 +100,6 @@ export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
                 }
             });
         });
-        console.log("mergedAnswers", mergedAnswers);
-        return;
 
         const automatedQuestionPayload = {
             questionId: _.get(createdQuestion, "id"),

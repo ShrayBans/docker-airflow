@@ -11,7 +11,7 @@ export async function fakeGameRunner(queueName = "myqueue", pathToGameJson) {
     const filteredEvents = filterImportantEvents(orderedWarriorsLakersJson);
 
     // Insert into PG
-    console.log("Inserting Game Info into PG");
+    console.log("Inserting Game PlayByPlay Info into PG");
     await Bluebird.each(orderedWarriorsLakersJson, async playByPlayInfo => {
         let nbaPlayByPlay = await NbaPlayByPlay.query().findOne({
             game_id: _.get(playByPlayInfo, "game_id"),

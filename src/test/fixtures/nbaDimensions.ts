@@ -1,7 +1,14 @@
 import * as _ from "lodash";
-import { NbaAutomatedMode, NbaAutomatedPeriod, NbaStat } from "sixthman-objection-models";
+import {
+    NbaAutomatedMode,
+    NbaAutomatedPeriod,
+    NbaStat,
+    ScheduledNbaAutomatedQuestion,
+    ScheduledNbaAutomatedQuestionOfDay,
+} from "sixthman-objection-models";
 
 export async function bootstrapNbaAutomatedMode() {
+    console.log("Inserting Automated Mode Info into PG");
     const nbaAutomatedModes: Partial<NbaAutomatedMode>[] = [
         { modeName: "first_stat", description: "First to Stat", sentenceFragment: "be the first to get a" },
         { modeName: "last_stat", description: "Last to Stat", sentenceFragment: "be the last to get a" },
@@ -13,19 +20,56 @@ export async function bootstrapNbaAutomatedMode() {
 }
 
 export async function bootstrapNbaAutomatedPeriod() {
+    console.log("Inserting Automated Period Info into PG");
     const nbaAutomatedPeriods: Partial<NbaAutomatedPeriod>[] = [
-        { periodName: "first_quarter", description: "First Quarter", sentenceFragment: "in the first quarter" },
-        { periodName: "second_quarter", description: "Second Quarter", sentenceFragment: "in the second quarter" },
-        { periodName: "third_quarter", description: "Third Quarter", sentenceFragment: "in the third quarter" },
-        { periodName: "fourth_quarter", description: "Fourth Quarter", sentenceFragment: "in the fourth quarter" },
-        { periodName: "first_half", description: "First Half", sentenceFragment: "in the first half" },
-        { periodName: "second_half", description: "Second Half", sentenceFragment: "in the second half" },
-        { periodName: "full_game", description: "Full Game", sentenceFragment: "over the entire game" },
+        {
+            periodName: "first_quarter",
+            description: "First Quarter",
+            quarterTrigger: "pregame",
+            sentenceFragment: "in the first quarter",
+        },
+        {
+            periodName: "second_quarter",
+            description: "Second Quarter",
+            quarterTrigger: "first_quarter",
+            sentenceFragment: "in the second quarter",
+        },
+        {
+            periodName: "third_quarter",
+            description: "Third Quarter",
+            quarterTrigger: "second_quarter",
+            sentenceFragment: "in the third quarter",
+        },
+        {
+            periodName: "fourth_quarter",
+            description: "Fourth Quarter",
+            quarterTrigger: "third_quarter",
+            sentenceFragment: "in the fourth quarter",
+        },
+        {
+            periodName: "first_half",
+            description: "First Half",
+            quarterTrigger: "pregame",
+            sentenceFragment: "in the first half",
+        },
+        {
+            periodName: "second_half",
+            description: "Second Half",
+            quarterTrigger: "second_quarter",
+            sentenceFragment: "in the second half",
+        },
+        {
+            periodName: "full_game",
+            description: "Full Game",
+            quarterTrigger: "pregame",
+            sentenceFragment: "over the entire game",
+        },
     ];
     await NbaAutomatedPeriod.query().insert(nbaAutomatedPeriods);
 }
 
 export async function bootstrapNbaAutomatedStat() {
+    console.log("Inserting Automated Stat Info into PG");
     const nbaAutomatedStats: Partial<NbaStat>[] = [
         { abbrev: "pts", statName: "points", description: "Points", sentenceFragment: "point" },
         { abbrev: "ftm", statName: "free_throw", description: "Free Throws", sentenceFragment: "free throw" },
@@ -75,4 +119,20 @@ export async function getNbaAutomatedStatId(statName) {
         .findOne({ stat_name: statName })
         .throwIfNotFound();
     return _.get(nbaStat, "id");
+}
+
+export async function bootStrapScheduledQuestions(
+    scheduledQuestionPayload: Partial<ScheduledNbaAutomatedQuestion>[]
+): Promise<ScheduledNbaAutomatedQuestion[]> {
+    const scheduledQuestions = await ScheduledNbaAutomatedQuestion.query().insert(scheduledQuestionPayload);
+
+    return scheduledQuestions;
+}
+
+export async function bootStrapScheduledQuestionOfDay(
+    scheduledQuestionPayload: Partial<ScheduledNbaAutomatedQuestionOfDay>[]
+): Promise<ScheduledNbaAutomatedQuestionOfDay[]> {
+    const scheduledQuestions = await ScheduledNbaAutomatedQuestionOfDay.query().insert(scheduledQuestionPayload);
+
+    return scheduledQuestions;
 }
