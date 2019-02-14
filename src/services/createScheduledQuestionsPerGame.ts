@@ -1,78 +1,29 @@
 import * as Bluebird from "bluebird";
 import * as _ from "lodash";
-import * as moment from "moment-timezone";
 import {
-    NbaGame,
     NbaStat,
     Question,
     QuestionGroup,
     ScheduledNbaAutomatedQuestion,
     ScheduledNbaAutomatedQuestionOfDay,
 } from "sixthman-objection-models";
-
-import { createRedisClient } from "../lib/redisClient";
-import { singlePromise } from "../lib/runUtils";
+import { pullTop4PlayersPerStat } from "../services/pullPredictionStats";
 import { createAutomatedQuestion } from "./automatedQuestionCreator";
-import { pullTop4PlayersPerStat } from "./pullPredictionStats";
 
-const { instantiateKnex } = require("../lib/knex.js");
 /**
- *    5 Pregame Questions:
- *    Who will score the most points for the game?
- *    Who will get the most rebounds?
- *    Who will make the first basket?
- *    Who will make the first 3 pointer?
- *    Who will win the game?
- *
- *    Before 2nd Quarter:
- *    Who will shoot the worst in this quarter?
- *    Who wins this quarter?
- *    Who has the most 3 pointers at the half?
- *
- *    Halftime/Before 3rd Quarter:
- *    Who will make the most free throws this quarter?
- *    Who wins this quarter?
- *    Who will have the most rebounds in this quarter?
- *    Who will make the last basket of the quarter?
- *
- *    Before 4th quarter:
- *    Who will have the most points this quarter?
- *    Who will make the last basket?
- *    Who will have the most 3’s this quarter?
+ * Entry point which creates all scheduled questions given a game and the current parsed quarter beginning
+ * @param redisClient
+ * @param game
+ * @param nbaStatAbbrevs
+ * @param quarterTrigger
  */
+export async function createScheduledQuestionsPerGame(redisClient, game, quarterTrigger) {
+    const nbaStats = await NbaStat.query();
+    const nbaStatAbbrevs = _.map(nbaStats, "abbrev");
+    const gameId: number = _.get(game, "id");
 
-// runScript(scheduledQuestionCreator);
-
-async function scheduledQuestionCreator() {
-    await instantiateKnex(process.env.DATABASE_API_CONNECTION);
-
-    const quarterTrigger = "pregame";
-    const redisClient = createRedisClient(process.env.REDIS_HOST, process.env.PORT);
-
-    const mainCallback = async () => {
-        const thirtyMinuteAfterDate = moment(new Date())
-            .add(1, "day")
-            // .add(30, "minutes")
-            .toDate();
-        const gamesToPull = await getGamesStartingBefore(thirtyMinuteAfterDate);
-        const nbaStats = await NbaStat.query();
-        const nbaStatAbbrevs = _.map(nbaStats, "abbrev");
-
-        // i.e { [gameId20004404]: { reb: [{Player1}, {Player2}, {Player3}] }}
-        const gameByStatByPlayerMap = {};
-        await Bluebird.each(gamesToPull, async game => {
-            const gameId: number = _.get(game, "id");
-
-            const topPlayersPerStat = await pullTop4PlayersPerStat(redisClient, game, nbaStatAbbrevs);
-            _.set(gameByStatByPlayerMap, gameId, topPlayersPerStat);
-
-            await createQuestionsPerGameTrigger(gameId, topPlayersPerStat, quarterTrigger);
-        });
-
-        // console.log("gameByStatByPlayerMap", gameByStatByPlayerMap);
-    };
-
-    await singlePromise(mainCallback);
+    const topPlayersPerStat = await pullTop4PlayersPerStat(redisClient, game, nbaStatAbbrevs);
+    await createQuestionsPerGameTrigger(gameId, topPlayersPerStat, quarterTrigger);
 }
 
 async function getAllScheduledAutomatedQuestions(gameId, channelId, quarterTrigger) {
@@ -86,7 +37,6 @@ async function getAllScheduledAutomatedQuestions(gameId, channelId, quarterTrigg
         .eager(`[stat, automatedPeriod, automatedMode]`);
 
     const allScheduledQuestions = _.concat(scheduledQuestionsOfDay, scheduledQuestions);
-
     const filteredScheduledQuestions = _.filter(allScheduledQuestions, scheduledQuestion => {
         return _.get(scheduledQuestion, ["automatedPeriod", "quarterTrigger"]) === quarterTrigger;
     });
@@ -151,11 +101,4 @@ export async function createQuestionsPerGameTrigger(gameId, topStats, quarterTri
     });
 
     return createdQuestions;
-}
-
-async function getGamesStartingBefore(date = new Date()) {
-    const UTCString = date.toUTCString();
-    return NbaGame.query()
-        .where("status", "!=", "completed")
-        .where("game_datetime", "<", UTCString);
 }

@@ -1,9 +1,8 @@
-import * as _ from "lodash";
-
 import { instantiateKnex } from "../lib/knex.js";
+import { createRedisClient } from "../lib/redisClient";
 import { RedisQueue } from "../lib/RedisQueue";
-import { answerAutomatedQuestion } from "../services/answerAutomatedQuestion";
-import { singlePromise, runScript } from "../lib/runUtils";
+import { runScript, singlePromise } from "../lib/runUtils";
+import { evaluateNbaEventMessage } from "../services/evaluateNbaEventMessage";
 
 runScript(runPlayByPlayEventConsumer);
 
@@ -13,14 +12,10 @@ runScript(runPlayByPlayEventConsumer);
 async function runPlayByPlayEventConsumer() {
     await instantiateKnex(process.env.DATABASE_API_CONNECTION);
     const redisQueue = new RedisQueue(process.env.REDIS_HOST, process.env.REDIS_PORT);
+    const redisClient = createRedisClient(process.env.REDIS_HOST, process.env.PORT);
     const queueName = "myqueue";
     const callback = async () => {
-        await redisQueue.runRSMQConsumer(queueName, evaluateNbaEventMessage);
+        await redisQueue.runRSMQConsumer(queueName, evaluateNbaEventMessage(redisClient));
     };
     await singlePromise(callback);
-}
-
-export async function evaluateNbaEventMessage(receivedPlayByPlayEvent) {
-    // Automated Question Answering
-    await answerAutomatedQuestion(receivedPlayByPlayEvent);
 }

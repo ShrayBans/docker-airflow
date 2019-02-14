@@ -9,14 +9,12 @@ import {
 } from "sixthman-objection-models";
 
 import { createRedisClient } from "../lib/redisClient";
-import { RedisQueue } from "../lib/RedisQueue";
-import { fakeGameRunner } from "./fakeGameRunner";
 import {
     bootstrapNbaAutomatedMode,
     bootstrapNbaAutomatedPeriod,
     bootstrapNbaAutomatedStat,
-} from "./fixtures/nbaDimensions";
-import { bootstrapNbaGame, bootstrapNbaPlayer, bootstrapNbaTeam } from "./fixtures/nbaGames";
+} from "../test/fixtures/nbaDimensions";
+import { bootstrapNbaGame, bootstrapNbaPlayer, bootstrapNbaTeam } from "../test/fixtures/nbaGames";
 import { pullTop4PlayersPerStat } from "./pullPredictionStats";
 
 describe("Question Group Services", async () => {

@@ -40,7 +40,7 @@ function filterImportantEvents(allPlays) {
     const filteredPlays = [];
 
     _.forEach(allPlays, play => {
-        if (play.event_msg_type === 13) {
+        if (play.event_msg_type === 13 || play.event_msg_type === 12) {
             filteredPlays.push(play);
         }
     });

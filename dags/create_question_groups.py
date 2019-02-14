@@ -27,7 +27,7 @@ dag = DAG("create_question_groups", default_args=default_args, schedule_interval
 
 t1 = BashOperator(
     task_id="create_question_groups",
-    bash_command=f"DATABASE_API_CONNECTION=postgres://sixthman:{SIXTHMAN_CONN_PASSWORD}@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman node /usr/local/airflow/src/load_jobs/create_new_question_groups.js",
+    bash_command=f"DATABASE_API_CONNECTION=postgres://sixthman:{SIXTHMAN_CONN_PASSWORD}@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman node /usr/local/airflow/src/createJobs/scheduledQuestionGroupCreator.js",
     pool="create_new_question_groups",
     retries=3,
     dag=dag

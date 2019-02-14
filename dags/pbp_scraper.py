@@ -34,7 +34,7 @@ dag = DAG("play_by_play_scraper", default_args=default_args, schedule_interval=t
 
 t2 = BashOperator(
     task_id="load_pbp",
-    bash_command=f"DATABASE_API_CONNECTION=postgres://sixthman:{SIXTHMAN_CONN_PASSWORD}@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman node /usr/local/airflow/src/load_jobs/load_pbp_data.js",
+    bash_command=f"DATABASE_API_CONNECTION=postgres://sixthman:{SIXTHMAN_CONN_PASSWORD}@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman node /usr/local/airflow/src/ingestJobs/loadPbpData.js",
     pool='play_by_play_scraper',
     dag=dag,
 )

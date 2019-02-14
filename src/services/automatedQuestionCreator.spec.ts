@@ -13,7 +13,6 @@ import {
 
 import { RedisQueue } from "../lib/RedisQueue";
 import { createAutomatedQuestion, generateQuestionName } from "./automatedQuestionCreator";
-import { fakeGameRunner } from "./fakeGameRunner";
 import {
     bootstrapNbaAutomatedMode,
     bootstrapNbaAutomatedPeriod,
@@ -21,12 +20,11 @@ import {
     getNbaAutomatedModeId,
     getNbaAutomatedPeriodId,
     getNbaAutomatedStatId,
-} from "./fixtures/nbaDimensions";
-import { bootstrapNbaGame, bootstrapNbaPlayer, bootstrapNbaTeam } from "./fixtures/nbaGames";
-import { pullTop4PlayersPerStat } from "./pullPredictionStats";
-import * as warriorsLakersPredictions from "./resources/warriors-lakers-predictions.json";
+} from "../test/fixtures/nbaDimensions";
+import { bootstrapNbaGame, bootstrapNbaPlayer, bootstrapNbaTeam } from "../test/fixtures/nbaGames";
+//@ts-ignore
+import * as warriorsLakersPredictions from "../test/resources/warriors-lakers-predictions.json";
 
-// @ts-ignore
 jest.mock("./pullPredictionStats", () => ({
     pullTop4PlayersPerStat: jest.fn().mockImplementation(() => Promise.resolve(warriorsLakersPredictions)),
 }));
@@ -59,8 +57,6 @@ describe("Question Group Services", async () => {
         });
         questionGroupId = _.get(questionGroup, "id");
         nbaGame = await NbaGame.query().findById(21800500);
-
-        await fakeGameRunner(redisQueueName, "./resources/warriors-lakers.json");
     });
 
     describe("#createAutomatedQuestion", async () => {

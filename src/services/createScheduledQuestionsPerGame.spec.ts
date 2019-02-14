@@ -9,27 +9,51 @@ import {
 } from "sixthman-objection-models";
 
 import { RedisQueue } from "../lib/RedisQueue";
-import { fakeGameRunner } from "./fakeGameRunner";
 import {
     bootstrapNbaAutomatedMode,
     bootstrapNbaAutomatedPeriod,
     bootstrapNbaAutomatedStat,
     bootStrapScheduledQuestionOfDay,
-    bootStrapScheduledQuestions,
+    bootstrapScheduledQuestions,
     getNbaAutomatedModeId,
     getNbaAutomatedPeriodId,
     getNbaAutomatedStatId,
-} from "./fixtures/nbaDimensions";
-import { bootstrapNbaGame, bootstrapNbaPlayer, bootstrapNbaTeam } from "./fixtures/nbaGames";
+} from "../test/fixtures/nbaDimensions";
+import { bootstrapNbaGame, bootstrapNbaPlayer, bootstrapNbaTeam } from "../test/fixtures/nbaGames";
 import { pullTop4PlayersPerStat } from "./pullPredictionStats";
 //@ts-ignore
-import * as warriorsLakersPredictions from "./resources/warriors-lakers-predictions.json";
-import { createQuestionsPerGameTrigger } from "./scheduledQuestionCreator";
+import * as warriorsLakersPredictions from "../test/resources/warriors-lakers-predictions.json";
+import { createQuestionsPerGameTrigger } from "../services/createScheduledQuestionsPerGame";
 
 // @ts-ignore
 jest.mock("./pullPredictionStats", () => ({
     pullTop4PlayersPerStat: jest.fn().mockImplementation(() => Promise.resolve(warriorsLakersPredictions)),
 }));
+
+/**
+ *    5 Pregame Questions:
+ *    Who will score the most points for the game?
+ *    Who will get the most rebounds?
+ *    Who will make the first basket?
+ *    Who will make the first 3 pointer?
+ *    Who will win the game?
+ *
+ *    Before 2nd Quarter:
+ *    Who will shoot the worst in this quarter?
+ *    Who wins this quarter?
+ *    Who has the most 3 pointers at the half?
+ *
+ *    Halftime/Before 3rd Quarter:
+ *    Who will make the most free throws this quarter?
+ *    Who wins this quarter?
+ *    Who will have the most rebounds in this quarter?
+ *    Who will make the last basket of the quarter?
+ *
+ *    Before 4th quarter:
+ *    Who will have the most points this quarter?
+ *    Who will make the last basket?
+ *    Who will have the most 3’s this quarter?
+ */
 
 describe("Question Group Services", async () => {
     let count = 0;
@@ -63,8 +87,6 @@ describe("Question Group Services", async () => {
         nbaGame = await NbaGame.query().findById(21800500);
         nbaGameId = 21800500;
         topStats = await pullTop4PlayersPerStat(1, nbaGame, ["joshsucks"]);
-
-        await fakeGameRunner(redisQueueName, "./resources/warriors-lakers.json");
     });
 
     describe("#pullTop4PlayersPerStat", async () => {
@@ -77,7 +99,7 @@ describe("Question Group Services", async () => {
     describe("#createQuestionsPerGameTrigger", async () => {
         describe("ScheuledQuestion - Creates Question and Automated Question and Formats Name Correctly", async () => {
             it("greatest_total_stat x full_game x free_throw_pct", async () => {
-                await bootStrapScheduledQuestions([
+                await bootstrapScheduledQuestions([
                     {
                         pointValue: 100,
                         automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
@@ -100,7 +122,7 @@ describe("Question Group Services", async () => {
             });
             it("lowest_total_stat x third_quarter x free_throw_pct", async () => {
                 const quarterTrigger = "second_quarter";
-                await bootStrapScheduledQuestions([
+                await bootstrapScheduledQuestions([
                     {
                         pointValue: 100,
                         automatedModeId: await getNbaAutomatedModeId("lowest_total_stat"),
@@ -174,7 +196,7 @@ describe("Question Group Services", async () => {
         describe("Doesn't create a question because of a bad trigger", async () => {
             it("quarterTrigger received (pregame) x automatedPeriod (second_quarter)", async () => {
                 const quarterTrigger = "pregame";
-                await bootStrapScheduledQuestions([
+                await bootstrapScheduledQuestions([
                     {
                         pointValue: 100,
                         description: "Test",
@@ -192,7 +214,7 @@ describe("Question Group Services", async () => {
             });
             it("quarterTrigger received (fourth_quarter) x automatedPeriod (third_quarter)", async () => {
                 const quarterTrigger = "pregame";
-                await bootStrapScheduledQuestions([
+                await bootstrapScheduledQuestions([
                     {
                         pointValue: 100,
                         description: "Test",
@@ -210,7 +232,7 @@ describe("Question Group Services", async () => {
             });
             it("quarterTrigger received (second_quarter) x automatedPeriod (fourth_quarter)", async () => {
                 const quarterTrigger = "second_quarter";
-                await bootStrapScheduledQuestions([
+                await bootstrapScheduledQuestions([
                     {
                         pointValue: 100,
                         description: "Test",
@@ -228,7 +250,7 @@ describe("Question Group Services", async () => {
             });
             it("Creates question - quarterTrigger received (pregame) x automatedPeriod (fourth_quarter)", async () => {
                 const quarterTrigger = "third_quarter";
-                await bootStrapScheduledQuestions([
+                await bootstrapScheduledQuestions([
                     {
                         pointValue: 100,
                         description: "Test",

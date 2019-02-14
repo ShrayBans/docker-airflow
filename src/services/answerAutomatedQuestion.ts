@@ -23,31 +23,29 @@ export async function answerAutomatedQuestion(playByPlayEvent) {
         let enrichedAutomatedAnswers;
 
         // If end of period, Split based on quarter and then question period
-        if (_.get(playByPlayEvent, "event_msg_type") === 13) {
-            const eventQuarter = _.get(playByPlayEvent, "quarter");
+        const eventQuarter = _.get(playByPlayEvent, "quarter");
 
-            if (eventQuarter === 4) {
-                if (periodName === "full_game") {
-                    enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
-                } else if (periodName === "second_half") {
-                    enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
-                } else if (periodName === "fourth_quarter") {
-                    enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
-                }
-            } else if (eventQuarter === 2) {
-                if (periodName === "second_quarter") {
-                    enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
-                } else if (periodName === "first_half") {
-                    enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
-                }
-            } else if (eventQuarter === 1) {
-                if (periodName === "first_quarter") {
-                    enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
-                }
-            } else if (eventQuarter === 3) {
-                if (periodName === "third_quarter") {
-                    enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
-                }
+        if (eventQuarter === 4) {
+            if (periodName === "full_game") {
+                enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
+            } else if (periodName === "second_half") {
+                enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
+            } else if (periodName === "fourth_quarter") {
+                enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
+            }
+        } else if (eventQuarter === 2) {
+            if (periodName === "second_quarter") {
+                enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
+            } else if (periodName === "first_half") {
+                enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
+            }
+        } else if (eventQuarter === 1) {
+            if (periodName === "first_quarter") {
+                enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
+            }
+        } else if (eventQuarter === 3) {
+            if (periodName === "third_quarter") {
+                enrichedAutomatedAnswers = await enrichAutomatedAnswers(unansweredQuestion);
             }
         }
 

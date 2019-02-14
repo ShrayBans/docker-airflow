@@ -121,7 +121,7 @@ export async function getNbaAutomatedStatId(statName) {
     return _.get(nbaStat, "id");
 }
 
-export async function bootStrapScheduledQuestions(
+export async function bootstrapScheduledQuestions(
     scheduledQuestionPayload: Partial<ScheduledNbaAutomatedQuestion>[]
 ): Promise<ScheduledNbaAutomatedQuestion[]> {
     const scheduledQuestions = await ScheduledNbaAutomatedQuestion.query().insert(scheduledQuestionPayload);
