@@ -218,6 +218,7 @@ async function insertPlayByPlay(scrapedPlayByPlayGame) {
 				const nbaTeam = await NbaTeam.query().findOne({
 					id: playerId
 				})
+				console.log('nbaTeam', nbaTeam);
 				if (nbaTeam) {
 					const playByPlayInfo = {
 						gameId,
