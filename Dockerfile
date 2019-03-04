@@ -94,7 +94,7 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
         wget
 
 ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 8.11.3
+ENV NODE_VERSION 10.5.0
 
 
 
