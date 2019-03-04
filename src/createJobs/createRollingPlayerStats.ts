@@ -163,8 +163,14 @@ async function runLoadRollingStats() {
             _.set(allTeamPlayerMap, teamId, playerMap);
             _.set(allTeamTop10Players, teamId, playerTop10Map);
 
-            await hmsetRedisClient(redisClient, `teamId:${teamId}:day:${pstDate}:top10`, playerTop10Map);
-            await hmsetRedisClient(redisClient, `teamId:${teamId}:day:${pstDate}:playerstats`, playerMap);
+            if (playerTop10Map && playerMap) {
+                await hmsetRedisClient(redisClient, `teamId:${teamId}:day:${pstDate}:top10`, playerTop10Map);
+                await hmsetRedisClient(redisClient, `teamId:${teamId}:day:${pstDate}:playerstats`, playerMap);
+            } else {
+                console.log("No playerTop10Map or no playerMap");
+                console.log("playerTop10Map", playerTop10Map);
+                console.log("playerMap", playerMap);
+            }
         });
     };
 

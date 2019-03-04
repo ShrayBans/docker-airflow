@@ -6,11 +6,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "ts-node-dev": "./node-dev_modules/ts-node-dev/bin/ts-node --transpileOnly --respawn",
-    "scheduledQuestionCreator": "npx ts-node ./src/test/scheduledQuestionCreator.ts",
+    "scheduledQuestionCreator": "ts-node -T ./src/test/scheduledQuestionCreator.ts",
     "scheduledQuestionGroupCreator": "node ./src/createJobs/scheduledQuestionGroupCreator.js",
-    "playByPlayEventConsumer": "npx ts-node ./src/ingestJobs/playByPlayEventConsumer.ts",
-    "createRollingPlayerStat": "npx ts-node ./src/createJobs/createRollingPlayerStat.ts",
-    "scrapeBoxScore": "npx ts-node ./src/ingestJobs/scrapeNbaBoxscore.ts"
+    "playByPlayEventConsumer": "ts-node -T ./src/ingestJobs/playByPlayEventConsumer.ts",
+    "createRollingPlayerStats": "ts-node -T ./src/createJobs/createRollingPlayerStats.ts",
+    "scrapeBoxScore": "ts-node -T ./src/ingestJobs/scrapeNbaBoxscore.ts"
   },
   "dependencies": {
     "axios": "^0.18.0",
