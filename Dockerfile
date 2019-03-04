@@ -113,6 +113,7 @@ WORKDIR ${AIRFLOW_HOME}
 RUN npm install -g yarn
 RUN yarn install
 RUN yarn global add typescript
+RUN yarn global add ts-node
 
 RUN pip3 install boto3==1.8.0 \
         && pip3 install botocore==1.11.0 \
