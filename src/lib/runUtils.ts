@@ -16,6 +16,12 @@ export async function loopingPromise(exitCallback: Function, callback: Function,
     return new Promise(async (resolve, reject) => {
         try {
             console.log(`Waiting ${intervalTime}ms to run.`);
+            const preCheck: boolean = await exitCallback();
+            if (preCheck) {
+                console.log(`Exit criteria met. Exiting..`);
+                return resolve(true);
+            }
+            await callback();
 
             const interval = setInterval(async () => {
                 const preCheck: boolean = await exitCallback();
