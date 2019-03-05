@@ -28,7 +28,7 @@ dag = DAG("load_rolling_player_stats", default_args=default_args, schedule_inter
 t1 = BashOperator(
     task_id="load_rolling_player_stats_task",
     pool="load_rolling_player_stats",
-    bash_command=f"DATABASE_API_CONNECTION=postgres://sixthman:{SIXTHMAN_CONN_PASSWORD}@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman REDIS_HOST=socket-server.yoy1ao.0001.usw1.cache.amazonaws.com REDIS_PORT=6379 ts-node -T /usr/local/airflow/src/createJobs/createRollingPlayerStats.ts",
+    bash_command=f"DATABASE_API_CONNECTION=postgres://sixthman:{SIXTHMAN_CONN_PASSWORD}@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman REDIS_HOST=socket-server.yoy1ao.0001.usw1.cache.amazonaws.com REDIS_PORT=6379 node /usr/local/airflow/build/createJobs/createRollingPlayerStats.js",
     retries=3,
     dag=dag
 )

@@ -4,6 +4,7 @@
   "description": "[![CircleCI branch](https://img.shields.io/circleci/project/puckel/docker-airflow/master.svg?maxAge=2592000)](https://circleci.com/gh/puckel/docker-airflow/tree/master) [![Docker Build Status](https://img.shields.io/docker/build/puckel/docker-airflow.svg)]()",
   "main": "index.js",
   "scripts": {
+    "build": "./node_modules/typescript/bin/tsc -p tsconfig.build.json --skipLibCheck",
     "test": "echo \"Error: no test specified\" && exit 1",
     "ts-node-dev": "./node-dev_modules/ts-node-dev/bin/ts-node --transpileOnly --respawn",
     "scheduledQuestionCreator": "ts-node -T ./src/test/scheduledQuestionCreator.ts",

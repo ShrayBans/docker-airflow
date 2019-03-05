@@ -1,7 +1,7 @@
 version: '2.1'
 services:
     webserver:
-        image: 146006631841.dkr.ecr.us-west-1.amazonaws.com/docker-airflow:1.0.14
+        image: 146006631841.dkr.ecr.us-west-1.amazonaws.com/docker-airflow:1.0.15
         restart: always
         environment:
             - LOAD_EX=n
@@ -10,6 +10,7 @@ services:
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./src:/usr/local/airflow/src
+            - ./build:/usr/local/airflow/build
             - ./node_modules:/usr/local/airflow/node_modules
             # Uncomment to include custom plugins
             - ./plugins:/usr/local/airflow/plugins
