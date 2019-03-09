@@ -245,3 +245,15 @@ async function insertPlayByPlay(scrapedPlayByPlayGame) {
 		console.log(`Some events in ${gameId} were already loaded!`);
 	}
 }
+
+async function sendToRedisQueue() {
+	const gameId = _.get(scrapedPlayByPlayGame, "gameId")
+	const pstDate = _.get(scrapedPlayByPlayGame, "pstDate")
+	const quarterToPull = _.get(scrapedPlayByPlayGame, "quarterToPull")
+	const playByPlayCollection = _.get(scrapedPlayByPlayGame, "plays")
+	let alreadyLoadedBool = false;
+
+	await _.forEach(playByPlayCollection, async (playByPlay) => {
+
+	});
+}

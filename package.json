@@ -9,7 +9,7 @@
     "ts-node-dev": "./node-dev_modules/ts-node-dev/bin/ts-node --transpileOnly --respawn",
     "scheduledQuestionCreator": "ts-node -T ./src/test/scheduledQuestionCreator.ts",
     "scheduledQuestionGroupCreator": "node ./src/createJobs/scheduledQuestionGroupCreator.js",
-    "playByPlayEventConsumer": "ts-node -T ./src/ingestJobs/playByPlayEventConsumer.ts",
+    "playByPlayEventConsumer": "node ./build/consumerJobs/playByPlayEventConsumer.js",
     "createRollingPlayerStats": "ts-node -T ./src/createJobs/createRollingPlayerStats.ts",
     "scrapeBoxScore": "ts-node -T ./src/ingestJobs/scrapeNbaBoxscore.ts"
   },

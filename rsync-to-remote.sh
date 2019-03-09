@@ -16,3 +16,4 @@ rsync -azvh build $REMOTE_SERVER:docker-airflow/
 rsync -azvh src $REMOTE_SERVER:docker-airflow/
 rsync -azvh node_modules $REMOTE_SERVER:docker-airflow/
 rsync -azvh docker-compose-prod.yml $REMOTE_SERVER:docker-airflow/
+rsync -azvh docker-compose-consumer.yml $REMOTE_SERVER:docker-airflow/

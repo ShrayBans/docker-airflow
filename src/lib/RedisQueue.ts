@@ -66,7 +66,7 @@ export class RedisQueue {
                     }
 
                     return receivedMessage;
-                }, 5);
+                }, 100);
 
                 if (process.env.DEBUG == "true") {
                     console.log("DONE");

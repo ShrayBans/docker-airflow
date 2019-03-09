@@ -13,8 +13,9 @@ async function runPlayByPlayEventConsumer() {
     await instantiateKnex(process.env.DATABASE_API_CONNECTION);
     const redisQueue = new RedisQueue(process.env.REDIS_HOST, process.env.REDIS_PORT);
     const redisClient = createRedisClient(process.env.REDIS_HOST, process.env.PORT);
-    const queueName = "myqueue";
+    const queueName = process.env.PLAY_BY_PLAY_QUEUE || "myqueue";
     const callback = async () => {
+        await redisQueue.createQueue(queueName);
         await redisQueue.runRSMQConsumer(queueName, evaluateNbaEventMessage(redisClient));
     };
     await singlePromise(callback);
