@@ -3,7 +3,8 @@ import { RedisClient } from "redis";
 import { NbaGame } from "sixthman-objection-models";
 
 import { answerAutomatedQuestion } from "../services/answerAutomatedQuestion";
-import { createScheduledQuestionsPerGame } from "../services/createScheduledQuestionsPerGame";
+import { createScheduledQuestionsPerGame } from "../services/createScheduledQuestions";
+import { closeAutomatedQuestion } from "./automatedQuestionCloser";
 
 /**
  * Callback handler for event consumer which has various functions
@@ -15,10 +16,11 @@ import { createScheduledQuestionsPerGame } from "../services/createScheduledQues
  */
 export function evaluateNbaEventMessage(redisClient: RedisClient) {
     return async function(receivedPlayByPlayEvent) {
-        const gameId = _.get(receivedPlayByPlayEvent, "game_id");
+        const gameId = _.get(receivedPlayByPlayEvent, "gameId");
         const game = await NbaGame.query().findById(gameId);
 
-        const eventMsgType = _.get(receivedPlayByPlayEvent, "event_msg_type");
+        // NOTE: Currently filtering out every other event other than 12 and 13 in `sendToRedisQueue`
+        const eventMsgType = _.get(receivedPlayByPlayEvent, "eventMsgType");
         const endOfQuarterEvent = eventMsgType === 13;
         const startOfQuarterEvent = eventMsgType === 12;
 
@@ -30,14 +32,23 @@ export function evaluateNbaEventMessage(redisClient: RedisClient) {
         if (startOfQuarterEvent) {
             const quarter = _.get(receivedPlayByPlayEvent, "quarter");
             const quarterTrigger = parseQuarterTrigger(quarter);
-            await createScheduledQuestionsPerGame(redisClient, game, quarterTrigger);
+            await createScheduledQuestionsPerGame(redisClient, quarterTrigger, game);
+        }
+        // Automated Question Closing - when quarter 2 starts, questions triggered to be created in quarter 1 are to be closed
+        if (startOfQuarterEvent) {
+            const quarter = _.get(receivedPlayByPlayEvent, "quarter");
+            // Subtracts 1 from quarter in order to signify th
+            const quarterTrigger = parseQuarterTrigger(quarter - 1);
+            await closeAutomatedQuestion(quarterTrigger);
         }
     };
 }
 
 function parseQuarterTrigger(quarter) {
     let quarterTrigger = "";
-    if (quarter === 1) {
+    if (quarter === 0) {
+        quarterTrigger = "pregame";
+    } else if (quarter === 1) {
         quarterTrigger = "first_quarter";
     } else if (quarter === 2) {
         quarterTrigger = "second_quarter";

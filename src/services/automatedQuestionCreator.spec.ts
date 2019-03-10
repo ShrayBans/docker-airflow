@@ -29,7 +29,7 @@ jest.mock("./pullPredictionStats", () => ({
     pullTop4PlayersPerStat: jest.fn().mockImplementation(() => Promise.resolve(warriorsLakersPredictions)),
 }));
 
-describe("Question Group Services", async () => {
+describe("Automated Question Creator", async () => {
     let count = 0;
     const redisQueueName = "test-queue";
     let redisQueue;

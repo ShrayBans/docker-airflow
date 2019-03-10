@@ -65,7 +65,7 @@ export async function answerAutomatedQuestion(playByPlayEvent) {
     return true;
 }
 
-async function getUnansweredAutomatedQuestions(excludedQuestionIds) {
+export async function getUnansweredAutomatedQuestions(excludedQuestionIds) {
     return NbaAutomatedQuestion.query()
         .eager(
             `[

@@ -12,6 +12,7 @@ export async function pullTop4PlayersPerStat(redisClient, game: NbaGame, statAbb
     let topAwayTeamPlayers: { id: number; avg: number }[];
     let allPlayerIds;
     let allPlayers;
+    let allPlayerStats;
     const topPlayersPerStat = {}; // { pts: [Player1, Player2], reb: ...}
 
     // await Bluebird.each(statAbbrevs, async stat => {
@@ -27,10 +28,24 @@ export async function pullTop4PlayersPerStat(redisClient, game: NbaGame, statAbb
         // Takes the top 2 of each stat from each team
         topHomeTeamPlayers = _.take(_.get(homeTeamPlayers, statAbbrev), 2);
         topAwayTeamPlayers = _.take(_.get(awayTeamPlayers, statAbbrev), 2);
-        allPlayerIds = _.map(topHomeTeamPlayers, "id").concat(_.map(topAwayTeamPlayers, "id"));
+
+        // TODO: Add Logic to Check for at least 5 FTs/FGs for percentages
+
+        // Turns into map of playerId to stats
+        allPlayerStats = _.chain(topHomeTeamPlayers.concat(topAwayTeamPlayers)).map((playerStat) => {
+            return _.assign({}, playerStat, { statAbbrev });
+        }).keyBy("id").value();
+
+        allPlayerIds = _.keys(allPlayerStats);
         allPlayers = await getAllPlayersByIds(allPlayerIds); // Potential optimization is to pull all players per team and cache it in memory
 
-        _.set(topPlayersPerStat, statAbbrev, allPlayers);
+        const enrichedPlayers = _.map(allPlayers, (nbaPlayer: NbaPlayer) => {
+            const nbaPlayerId = _.get(nbaPlayer, "id");
+            const nbaPlayerStats = _.get(allPlayerStats, nbaPlayerId)
+            return _.assign({}, nbaPlayer, nbaPlayerStats)
+        })
+
+        _.set(topPlayersPerStat, statAbbrev, enrichedPlayers);
     });
 
     return topPlayersPerStat;

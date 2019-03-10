@@ -5,6 +5,7 @@ import {
     NbaStat,
     ScheduledNbaAutomatedQuestion,
     ScheduledNbaAutomatedQuestionOfDay,
+    ScheduledNbaAutomatedAnswer,
 } from "sixthman-objection-models";
 
 export async function bootstrapNbaAutomatedMode() {
@@ -127,6 +128,14 @@ export async function bootstrapScheduledQuestions(
     const scheduledQuestions = await ScheduledNbaAutomatedQuestion.query().insert(scheduledQuestionPayload);
 
     return scheduledQuestions;
+}
+
+export async function bootstrapScheduledAnswers(
+    scheduledAnswerPayload: Partial<ScheduledNbaAutomatedAnswer>[]
+): Promise<ScheduledNbaAutomatedAnswer[]> {
+    const scheduledAnswers = await ScheduledNbaAutomatedAnswer.query().insert(scheduledAnswerPayload);
+
+    return scheduledAnswers;
 }
 
 export async function bootStrapScheduledQuestionOfDay(

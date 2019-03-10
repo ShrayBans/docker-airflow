@@ -11,7 +11,7 @@ import {
 import { createRedisClient } from "../lib/redisClient";
 import { RedisQueue } from "../lib/RedisQueue";
 import { createAutomatedQuestion } from "../services/automatedQuestionCreator";
-import { createQuestionsPerGameTrigger } from "../services/createScheduledQuestionsPerGame";
+import { createQuestionsPerGameTrigger } from "../services/createScheduledQuestions";
 import { evaluateNbaEventMessage } from "../services/evaluateNbaEventMessage";
 import { fakeGameRunner } from "./fakeGameRunner";
 import {
@@ -25,8 +25,15 @@ import {
     getNbaAutomatedStatId,
 } from "./fixtures/nbaDimensions";
 import { bootstrapNbaGame, bootstrapNbaPlayer, bootstrapNbaTeam } from "./fixtures/nbaGames";
+//@ts-ignore
+import * as warriorsLakersPredictions from "../test/resources/warriors-lakers-predictions.json";
 
-describe("Question Group Services", async () => {
+
+jest.mock("../services/pullPredictionStats", () => ({
+    pullTop4PlayersPerStat: jest.fn().mockImplementation(() => Promise.resolve(warriorsLakersPredictions)),
+}));
+
+describe("Play By Play Event Consumer", async () => {
     let count = 0;
     const redisQueueName = "test-queue";
     let nbaGameId;
@@ -60,7 +67,7 @@ describe("Question Group Services", async () => {
         await fakeGameRunner(redisQueueName, "./resources/warriors-lakers.json");
     });
     describe("Automated Question Creation", async () => {
-        describe("ScheuledQuestion - Creates Question and Automated Question and Formats Name Correctly", async () => {
+        describe("ScheduledQuestion - Creates Question and Automated Question and Formats Name Correctly", async () => {
             it("greatest_total_stat x full_game x free_throw_pct", async () => {
                 await bootstrapScheduledQuestions([
                     {
@@ -99,7 +106,8 @@ describe("Question Group Services", async () => {
             });
         });
 
-        describe("ScheuledQuestionOfDay - Creates Question and Automated Question and Formats Name Correctly", async () => {
+        // Removed ScheduledQuestionOfDay functionality
+        describe.skip("ScheduledQuestionOfDay - Creates Question and Automated Question and Formats Name Correctly", async () => {
             it("greatest_total_stat x second_half x free_throw_pct", async () => {
                 await bootStrapScheduledQuestionOfDay([
                     {

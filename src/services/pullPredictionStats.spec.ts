@@ -17,7 +17,7 @@ import {
 import { bootstrapNbaGame, bootstrapNbaPlayer, bootstrapNbaTeam } from "../test/fixtures/nbaGames";
 import { pullTop4PlayersPerStat } from "./pullPredictionStats";
 
-describe("Question Group Services", async () => {
+describe("Pull Prediction Stats", async () => {
     const redisQueueName = "test-queue";
     let channel;
     let questionGroup;

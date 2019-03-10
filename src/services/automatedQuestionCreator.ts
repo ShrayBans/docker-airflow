@@ -13,15 +13,15 @@ import {
  * Creates an NbaAutomatedQuestion as well as a Question.
  * @param createAutomatedQuestionPayload
  */
-export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
+export async function createAutomatedQuestion(createAutomatedQuestionPayload): Promise<Question>{
     const {
         channelId = 1,
         questionGroupId = 1,
         questionName,
-        pointWeight = 10,
-        statId = 1,
-        automatedModeId = 3,
-        automatedPeriodId = 7,
+        pointWeight = 100,
+        statId,
+        automatedModeId,
+        automatedPeriodId,
         gameId = 21800500,
         questionType = "multi_choice",
         answersPayload = [
@@ -48,25 +48,27 @@ export async function createAutomatedQuestion(createAutomatedQuestionPayload) {
         ],
     } = createAutomatedQuestionPayload;
 
+    const filteredAnswersPayload = _.map(answersPayload, answer => {
+        answer.status = _.get(answer, "status", "open");
+        return _.pick(answer, ["value", "status"]);
+    });
+
+    // VALIDATION
+    // There must be answers in order to create questions
+    if (_.size(filteredAnswersPayload) === 0) {
+        console.error("There were no answers in the question payload")
+        return <Question>{};
+    }
+
+    // There must be a questionName or (statId, automatedModeId, automatedPeriodId)
+    if (!questionName && !(statId && automatedModeId && automatedPeriodId)) {
+        console.error("There was no name for the question")
+        return <Question>{};
+    }
+
     const usedQuestionName = questionName
         ? questionName
         : await generateQuestionName(statId, automatedModeId, automatedPeriodId);
-
-    const filteredAnswersPayload = _.map(answersPayload, answer => {
-        answer.status = _.get(answer, "status", "incorrect");
-        return _.pick(answer, ["value", "status"]);
-    });
-    const test = {
-        channelId,
-        questionGroupId,
-        name: usedQuestionName,
-        pointWeight,
-        questionType,
-        isClosed: false,
-        status: "unanswered",
-        closingType: "stat_automated",
-        answers: filteredAnswersPayload,
-    };
 
     return transaction(Base.knex(), async trx => {
         const questionPayload = {

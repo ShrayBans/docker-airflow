@@ -6,9 +6,11 @@ import {
     NbaGame,
     Question,
     QuestionGroup,
+    ScheduledNbaAutomatedAnswer,
 } from "sixthman-objection-models";
 
 import { RedisQueue } from "../lib/RedisQueue";
+import { createQuestionsPerGameTrigger, createQuestionsPerChannel, getAllScheduledAutomatedQuestions } from "../services/createScheduledQuestions";
 import {
     bootstrapNbaAutomatedMode,
     bootstrapNbaAutomatedPeriod,
@@ -18,14 +20,14 @@ import {
     getNbaAutomatedModeId,
     getNbaAutomatedPeriodId,
     getNbaAutomatedStatId,
+    bootstrapScheduledAnswers,
 } from "../test/fixtures/nbaDimensions";
 import { bootstrapNbaGame, bootstrapNbaPlayer, bootstrapNbaTeam } from "../test/fixtures/nbaGames";
-import { pullTop4PlayersPerStat } from "./pullPredictionStats";
-//@ts-ignore
-import * as warriorsLakersPredictions from "../test/resources/warriors-lakers-predictions.json";
-import { createQuestionsPerGameTrigger } from "../services/createScheduledQuestionsPerGame";
-
 // @ts-ignore
+import * as warriorsLakersPredictions from "../test/resources/warriors-lakers-predictions.json";
+import { pullTop4PlayersPerStat } from "./pullPredictionStats";
+import * as moment from 'moment-timezone';
+
 jest.mock("./pullPredictionStats", () => ({
     pullTop4PlayersPerStat: jest.fn().mockImplementation(() => Promise.resolve(warriorsLakersPredictions)),
 }));
@@ -55,7 +57,7 @@ jest.mock("./pullPredictionStats", () => ({
  *    Who will have the most 3’s this quarter?
  */
 
-describe("Question Group Services", async () => {
+describe("Create Scheduled Questions", async () => {
     let count = 0;
     const redisQueueName = "test-queue";
     let redisQueue;
@@ -96,8 +98,157 @@ describe("Question Group Services", async () => {
         });
     });
 
+    describe("#createQuestionsPerChannel", async () => {
+        describe("ScheduledQuestion - Creates Question without Automated Stat Fields", async () => {
+            it("No Scheduled Answers Fails", async () => {
+                await bootstrapScheduledQuestions([
+                    {
+                        pointValue: 100,
+                        overwriteName: "Test Name",
+                        automatedPeriodId: await getNbaAutomatedPeriodId("full_game"),
+                    },
+                ]);
+                const quarterTrigger = "pregame";
+                await createQuestionsPerChannel(quarterTrigger, channelId);
+
+                const question = await Question.query().where({
+                    question_group_id: questionGroupId,
+                });
+
+                expect(question).toHaveLength(0);
+            });
+            it("No overwrite name fails", async () => {
+                await bootstrapScheduledQuestions([
+                    {
+                        pointValue: 100,
+                        automatedPeriodId: await getNbaAutomatedPeriodId("full_game"),
+                    },
+                ]);
+                const quarterTrigger = "pregame";
+                await createQuestionsPerChannel(quarterTrigger, channelId);
+
+                const question = await Question.query().where({
+                    question_group_id: questionGroupId,
+                });
+
+                expect(question).toHaveLength(0);
+            });
+            it("Scheduled Answers with Overwrite name succeeds", async () => {
+                const quarterTrigger = "pregame";
+                const [{ id: scheduledAutomatedQuestionId }] = await bootstrapScheduledQuestions([
+                    {
+                        pointValue: 100,
+                        overwriteName: "Test Name",
+                        automatedPeriodId: await getNbaAutomatedPeriodId("full_game"),
+                    },
+                ]);
+
+                await bootstrapScheduledAnswers([
+                    {
+                        scheduledAutomatedQuestionId,
+                        value: "Shray Test Answer 1",
+                        status: "open"
+                    },
+                    {
+                        scheduledAutomatedQuestionId,
+                        value: "Shray Test Answer 2",
+                        status: "open"
+                    }
+                ])
+                const createdQuestions = await createQuestionsPerChannel(quarterTrigger, channelId);
+                const createdQuestionId = _.get(_.head(createdQuestions), "id");
+
+                const question = await Question.query().where({
+                    question_group_id: questionGroupId,
+                });
+                expect(question).toHaveLength(1);
+                expect(_.head(question).id).toEqual(createdQuestionId);
+                expect(_.head(question).name).toEqual("Test Name");
+            });
+        });
+    });
+
+    describe.only("#getAllScheduledAutomatedQuestions", async () => {
+        describe("Can get Scheduled Questions", async () => {
+            it("when there is a channelId and no postDate", async () => {
+                await bootstrapScheduledQuestions([
+                    {
+                        pointValue: 100,
+                        overwriteName: "Test Name",
+                        automatedPeriodId: await getNbaAutomatedPeriodId("full_game"),
+                        channelId
+                    },
+                ]);
+
+                const scheduledQuestions = await getAllScheduledAutomatedQuestions("pregame", channelId)
+                expect(scheduledQuestions).toHaveLength(1);
+            });
+            it("according to the associated quarterTrigger 'first_quarter'", async () => {
+                await bootstrapScheduledQuestions([
+                    {
+                        pointValue: 100,
+                        overwriteName: "Test Name",
+                        automatedPeriodId: await getNbaAutomatedPeriodId("second_quarter"),
+                        channelId
+                    },
+                ]);
+
+                const scheduledQuestions = await getAllScheduledAutomatedQuestions("first_quarter", channelId)
+                expect(scheduledQuestions).toHaveLength(1);
+            });
+            it("when it is the current date", async () => {
+                const currentDateString = moment.tz(
+                    moment(new Date())
+                        .toDate(),
+                    "America/Los_Angeles"
+                )
+                .format("YYYYMMDD");
+                // console.log('currentDateString', currentDateString);
+
+                await bootstrapScheduledQuestions([
+                    {
+                        pointValue: 100,
+                        overwriteName: "Test Name",
+                        automatedPeriodId: await getNbaAutomatedPeriodId("second_quarter"),
+                        channelId,
+                        postDate: currentDateString
+                    },
+                ]);
+
+                const scheduledQuestions = await getAllScheduledAutomatedQuestions("first_quarter", channelId)
+                expect(scheduledQuestions).toHaveLength(1);
+            });
+            it("not when there is not automatedPeriod associated", async () => {
+                await bootstrapScheduledQuestions([
+                    {
+                        pointValue: 100,
+                        automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
+                        statId: await getNbaAutomatedStatId("free_throw_pct"),
+                    },
+                ]);
+
+                const scheduledQuestions = await getAllScheduledAutomatedQuestions("pregame", channelId)
+                expect(scheduledQuestions).toHaveLength(0);
+            });
+            it("not when a question has already been posted", async () => {
+                await bootstrapScheduledQuestions([
+                    {
+                        pointValue: 100,
+                        automatedModeId: await getNbaAutomatedModeId("greatest_total_stat"),
+                        automatedPeriodId: await getNbaAutomatedPeriodId("full_game"),
+                        statId: await getNbaAutomatedStatId("free_throw_pct"),
+                        posted: true,
+                    },
+                ]);
+
+                const scheduledQuestions = await getAllScheduledAutomatedQuestions("pregame", channelId)
+                expect(scheduledQuestions).toHaveLength(0);
+            });
+        });
+    })
+
     describe("#createQuestionsPerGameTrigger", async () => {
-        describe("ScheuledQuestion - Creates Question and Automated Question and Formats Name Correctly", async () => {
+        describe("ScheduledQuestion - Creates Question and Automated Question and Formats Name Correctly", async () => {
             it("greatest_total_stat x full_game x free_throw_pct", async () => {
                 await bootstrapScheduledQuestions([
                     {
@@ -115,6 +266,7 @@ describe("Question Group Services", async () => {
                 const question = await Question.query().where({
                     question_group_id: questionGroupId,
                 });
+
                 expect(question).toHaveLength(1);
                 expect(_.head(question).pointWeight).toEqual(100);
                 expect(_.head(question).id).toEqual(createdQuestionId);
@@ -143,7 +295,8 @@ describe("Question Group Services", async () => {
             });
         });
 
-        describe("ScheuledQuestionOfDay - Creates Question and Automated Question and Formats Name Correctly", async () => {
+        // Removed ScheduledQuestionOfDay functionality
+        describe.skip("ScheduledQuestionOfDay - Creates Question and Automated Question and Formats Name Correctly", async () => {
             it("greatest_total_stat x full_game x free_throw_pct", async () => {
                 await bootStrapScheduledQuestionOfDay([
                     {

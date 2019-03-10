@@ -46,6 +46,9 @@ run().then(() => {
 
 async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)
+	const redisQueue = new RedisQueue(process.env.REDIS_HOST, process.env.REDIS_PORT);
+    const queueName = process.env.PLAY_BY_PLAY_QUEUE || "prod-pbp";
+	await redisQueue.createQueue(queueName);
 
 	return new Promise((resolve, reject) => {
 		try {
@@ -70,7 +73,7 @@ async function run() {
 					// If quarter has completed, then send a message to Redis Pub Sub and change status to next quarter (not_started, 1, 2, 3, 4, 5, completed)
 					const playByPlayCollectionSets = await Bluebird.map(filteredGamesToPull, async (gameObject) => scrapePlayByPlayCollection(gameObject))
 					await Bluebird.each(playByPlayCollectionSets, async (scrapedGamePlayByPlays) => {
-						await insertPlayByPlay(scrapedGamePlayByPlays)
+						await insertPlayByPlay(scrapedGamePlayByPlays, redisQueue, queueName)
 					})
 					lock = false;
 				}
@@ -153,7 +156,7 @@ async function incrementGameQuarterState({
 	}
 }
 
-async function insertPlayByPlay(scrapedPlayByPlayGame) {
+async function insertPlayByPlay(scrapedPlayByPlayGame, redisQueue, queueName) {
 	const gameId = _.get(scrapedPlayByPlayGame, "gameId")
 	const pstDate = _.get(scrapedPlayByPlayGame, "pstDate")
 	const quarterToPull = _.get(scrapedPlayByPlayGame, "quarterToPull")
@@ -201,6 +204,7 @@ async function insertPlayByPlay(scrapedPlayByPlayGame) {
 				// console.log(`${_.get(nbaPlayByPlay, "clock")} ${_.get(nbaPlayByPlay, "eventMsgType")} already loaded!`);
 			} else {
 				nbaPlayByPlay = await NbaPlayByPlay.query().insert(playByPlayInfo);
+				sendToRedisQueue(nbaPlayByPlay, redisQueue, queueName)
 				// console.log(`${_.get(nbaPlayByPlay, "clock")} ${_.get(nbaPlayByPlay, "eventMsgType")} loaded!`);
 			}
 
@@ -234,6 +238,7 @@ async function insertPlayByPlay(scrapedPlayByPlayGame) {
 						playerId: undefined,
 					};
 					nbaPlayByPlay = await NbaPlayByPlay.query().insert(playByPlayInfo);
+					sendToRedisQueue(nbaPlayByPlay, redisQueue, queueName)
 				}
 			} catch (err) {
 				console.log('err', err);
@@ -246,14 +251,8 @@ async function insertPlayByPlay(scrapedPlayByPlayGame) {
 	}
 }
 
-async function sendToRedisQueue() {
-	const gameId = _.get(scrapedPlayByPlayGame, "gameId")
-	const pstDate = _.get(scrapedPlayByPlayGame, "pstDate")
-	const quarterToPull = _.get(scrapedPlayByPlayGame, "quarterToPull")
-	const playByPlayCollection = _.get(scrapedPlayByPlayGame, "plays")
-	let alreadyLoadedBool = false;
-
-	await _.forEach(playByPlayCollection, async (playByPlay) => {
-
-	});
+async function sendToRedisQueue(nbaPlayByPlay, redisQueue, queueName) {
+	if (_.get(play, "eventMsgType") === 13 || _.get(play, "eventMsgType") === 12) {
+		redisQueue.sendToRedisQueue(queueName, nbaPlayByPlay);
+	}
 }

@@ -8,16 +8,16 @@ export async function fakeGameRunner(queueName = "myqueue", pathToGameJson) {
     const warriorsLakersJson = require(pathToGameJson);
 
     const orderedWarriorsLakersJson = _.orderBy(warriorsLakersJson, ["quarter", "clock"], ["asc", "desc"]);
-    const filteredEvents = filterImportantEvents(orderedWarriorsLakersJson);
+    const filteredEvents = filterImportantFakeNbaEvents(orderedWarriorsLakersJson);
 
     // Insert into PG
     console.log("Inserting Game PlayByPlay Info into PG");
     await Bluebird.each(orderedWarriorsLakersJson, async playByPlayInfo => {
         let nbaPlayByPlay = await NbaPlayByPlay.query().findOne({
-            game_id: _.get(playByPlayInfo, "game_id"),
+            game_id: _.get(playByPlayInfo, "gameId"),
             quarter: _.get(playByPlayInfo, "quarter"),
             clock: _.get(playByPlayInfo, "clock"),
-            event_msg_type: _.get(playByPlayInfo, "event_msg_type"),
+            event_msg_type: _.get(playByPlayInfo, "eventMsgType"),
             description: _.get(playByPlayInfo, "description"),
         });
         if (!nbaPlayByPlay) {
@@ -36,11 +36,11 @@ export async function fakeGameRunner(queueName = "myqueue", pathToGameJson) {
     });
 }
 
-function filterImportantEvents(allPlays) {
+export function filterImportantFakeNbaEvents(allPlays) {
     const filteredPlays = [];
 
     _.forEach(allPlays, play => {
-        if (play.event_msg_type === 13 || play.event_msg_type === 12) {
+        if (play.eventMsgType === 13 || play.eventMsgType === 12) {
             filteredPlays.push(play);
         }
     });

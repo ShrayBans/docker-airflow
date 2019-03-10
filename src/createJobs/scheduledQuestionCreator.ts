@@ -4,7 +4,7 @@ import { NbaGame } from "sixthman-objection-models";
 
 import { createRedisClient } from "../lib/redisClient";
 import { singlePromise, runScript } from "../lib/runUtils";
-import { createScheduledQuestionsPerGame } from "../services/createScheduledQuestionsPerGame";
+import { createScheduledQuestionsPerGame } from "../services/createScheduledQuestions";
 
 const { instantiateKnex } = require("../lib/knex.js");
 
@@ -25,7 +25,7 @@ async function scheduledQuestionCreatorTester() {
 
         // i.e { [gameId20004404]: { reb: [{Player1}, {Player2}, {Player3}] }}
         await Bluebird.each(gamesToPull, async game => {
-            await createScheduledQuestionsPerGame(redisClient, game, quarterTrigger);
+            await createScheduledQuestionsPerGame(redisClient, quarterTrigger, game);
         });
     };
 
