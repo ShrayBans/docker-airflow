@@ -9,7 +9,8 @@
     "ts-node-dev": "./node-dev_modules/ts-node-dev/bin/ts-node --transpileOnly --respawn",
     "scheduledQuestionCreator": "ts-node -T ./src/test/scheduledQuestionCreator.ts",
     "scheduledQuestionGroupCreator": "node ./src/createJobs/scheduledQuestionGroupCreator.js",
-    "playByPlayEventConsumer": "node ./build/consumerJobs/playByPlayEventConsumer.js",
+    "loadPbp": "yarn build && node ./build/ingestJobs/loadPbpData.js",
+    "playByPlayEventConsumer": "yarn build && node ./build/consumerJobs/playByPlayEventConsumer.js",
     "createRollingPlayerStats": "ts-node -T ./src/createJobs/createRollingPlayerStats.ts",
     "scrapeBoxScore": "ts-node -T ./src/ingestJobs/scrapeNbaBoxscore.ts"
   },
@@ -34,7 +35,7 @@
     "puppeteer": "^1.9.0",
     "redis": "^2.8.0",
     "rsmq": "^0.10.0",
-    "sixthman-objection-models": "1.0.24",
+    "sixthman-objection-models": "1.0.25",
     "ts-jest": "^23.10.5"
   },
   "repository": {

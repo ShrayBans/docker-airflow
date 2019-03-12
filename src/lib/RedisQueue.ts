@@ -35,6 +35,7 @@ export class RedisQueue {
     }
 
     async sendRedisQueueMsg(queueName, msg) {
+        console.log('msg', msg);
         try {
             const message = await this.rsmq.sendMessageAsync({
                 qname: queueName,

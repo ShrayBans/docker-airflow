@@ -1,3 +1,6 @@
+import { RedisQueue } from "../lib/RedisQueue";
+import { NbaPlayByPlay, NbaTeam, NbaGame, } from "sixthman-objection-models";
+
 const {
 	instantiateKnex
 } = require("../lib/knex.js")
@@ -8,15 +11,7 @@ const Bluebird = require("bluebird")
 const _ = require("lodash")
 const moment = require('moment-timezone');
 
-const {
-	getRandomInterval
-} = require("../lib/utils")
-
-const {
-	NbaTeam,
-	NbaGame,
-	NbaPlayByPlay
-} = require("sixthman-objection-models")
+import { getRandomInterval } from "../lib/utils"
 
 const eventMsgMap = {
 	1: "Shot Made",
@@ -44,15 +39,22 @@ run().then(() => {
 		process.exit(1)
 	});
 
+const teamCache = {}
+
 async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)
-	const redisQueue = new RedisQueue(process.env.REDIS_HOST, process.env.REDIS_PORT);
+	const redisQueue: RedisQueue = new RedisQueue(process.env.REDIS_HOST, process.env.REDIS_PORT);
     const queueName = process.env.PLAY_BY_PLAY_QUEUE || "prod-pbp";
 	await redisQueue.createQueue(queueName);
+	const nbaTeams = await NbaTeam.query();
+
+	_.forEach(nbaTeams, (nbaTeam: NbaTeam) => {
+		_.set(teamCache, _.get(nbaTeam, "id"), nbaTeam);
+	});
 
 	return new Promise((resolve, reject) => {
 		try {
-			const randomInterval = getRandomInterval();
+			const randomInterval = 3000;
 			let lock = false;
 			console.log(`Starting NBA Play by Play scraper with random interval of ${randomInterval / 1000 } seconds`);
 
@@ -71,9 +73,41 @@ async function run() {
 					console.log(`${_.size(filteredGamesToPull)} games left to find play by plays for!`);
 
 					// If quarter has completed, then send a message to Redis Pub Sub and change status to next quarter (not_started, 1, 2, 3, 4, 5, completed)
+					const beforeScrape = Date.now();
 					const playByPlayCollectionSets = await Bluebird.map(filteredGamesToPull, async (gameObject) => scrapePlayByPlayCollection(gameObject))
+					const afterScrape = Date.now();
+					console.log('Time to scrape', afterScrape-beforeScrape);
+
+					// Checking if playByPlay has been inserted, and if not, then inserting them into the DB
 					await Bluebird.each(playByPlayCollectionSets, async (scrapedGamePlayByPlays) => {
-						await insertPlayByPlay(scrapedGamePlayByPlays, redisQueue, queueName)
+						const beforePbp = Date.now();
+						const pbpToBeInserted: Partial<NbaPlayByPlay>[] = await getPlayByPlaysToBeInserted(scrapedGamePlayByPlays, redisQueue, queueName);
+						const afterPbp = Date.now();
+						console.log('Time to check if play by plays have been inserted', afterPbp-beforePbp);
+
+						// Inserting and sending to downstream redis
+						const beforeInsert = Date.now();
+						await NbaPlayByPlay.query().insert(pbpToBeInserted);
+						const afterInsert = Date.now();
+						console.log('Time to insert', afterInsert-beforeInsert);
+
+						// Incrementing quarter to be fetched as well as sending associated events to redis queue
+						await Bluebird.each(pbpToBeInserted, async (nbaPlayByPlay: NbaPlayByPlay) => {
+							const { eventMsgType,
+								quarter,
+								homeTeamScore,
+								awayTeamScore,
+								gameId } = nbaPlayByPlay;
+							await incrementGameQuarterState({
+								eventMsgType,
+								quarter,
+								homeTeamScore,
+								awayTeamScore,
+								gameId
+							});
+							await sendToRedisQueue(nbaPlayByPlay, redisQueue, queueName);
+						});
+
 					})
 					lock = false;
 				}
@@ -99,7 +133,7 @@ async function scrapePlayByPlayCollection(gameObject) {
 	let quarterToPull;
 	if (gameStatus === "not_started") {
 		quarterToPull = 1;
-		const nbaGame = await NbaGame.query().findById(gameId);
+		const nbaGame: NbaGame = await NbaGame.query().findById(gameId);
 		await nbaGame.$query().patch({
 			status: "1"
 		});
@@ -107,7 +141,7 @@ async function scrapePlayByPlayCollection(gameObject) {
 		quarterToPull = parseInt(gameStatus);
 	}
 
-	URL_TO_SCRAPE = `https://data.nba.net/prod/v1/${pstDate}/00${gameId}_pbp_${quarterToPull}.json`
+	const URL_TO_SCRAPE = `https://data.nba.net/prod/v1/${pstDate}/00${gameId}_pbp_${quarterToPull}.json`
 	console.log('URL_TO_SCRAPE', URL_TO_SCRAPE);
 
 	let playByPlayRaw;
@@ -127,20 +161,20 @@ async function scrapePlayByPlayCollection(gameObject) {
 
 async function incrementGameQuarterState({
 	eventMsgType,
-	quarterToPull,
+	quarter,
 	homeTeamScore,
 	awayTeamScore,
 	gameId
 }) {
 	// Represents the End of the Game but going into OT
-	if (eventMsgType == 13 && quarterToPull >= 4 && homeTeamScore == awayTeamScore) {
+	if (eventMsgType == 13 && quarter >= 4 && homeTeamScore == awayTeamScore) {
 		const nbaGame = await NbaGame.query().findById(gameId);
-		console.log(`Quarter ${quarterToPull} completed: ${gameId}`);
+		console.log(`Quarter ${quarter} completed: ${gameId}`);
 		await nbaGame.$query().patch({
-			status: quarterToPull + 1,
+			status: quarter + 1,
 		});
 		// Represents the End of the Game
-	} else if (eventMsgType == 13 && quarterToPull >= 4) {
+	} else if (eventMsgType == 13 && quarter >= 4) {
 		const nbaGame = await NbaGame.query().findById(gameId);
 		console.log(`Game completed: ${gameId}`);
 		await nbaGame.$query().patch({
@@ -149,21 +183,24 @@ async function incrementGameQuarterState({
 		// Represents the End of the Period
 	} else if (eventMsgType == 13) {
 		const nbaGame = await NbaGame.query().findById(gameId);
-		console.log(`Quarter ${quarterToPull} completed: ${gameId}`);
+		console.log(`Quarter ${quarter} completed: ${gameId}`);
 		await nbaGame.$query().patch({
-			status: quarterToPull + 1,
+			status: quarter + 1,
 		});
 	}
 }
 
-async function insertPlayByPlay(scrapedPlayByPlayGame, redisQueue, queueName) {
+async function getPlayByPlaysToBeInserted(scrapedPlayByPlayGame, redisQueue, queueName): Promise<Partial<NbaPlayByPlay>[]>{
 	const gameId = _.get(scrapedPlayByPlayGame, "gameId")
 	const pstDate = _.get(scrapedPlayByPlayGame, "pstDate")
 	const quarterToPull = _.get(scrapedPlayByPlayGame, "quarterToPull")
 	const playByPlayCollection = _.get(scrapedPlayByPlayGame, "plays")
 	let alreadyLoadedBool = false;
 
-	await _.forEach(playByPlayCollection, async (playByPlay) => {
+	const playsToBeInserted: Partial<NbaPlayByPlay>[] = [];
+
+
+	await Bluebird.each(playByPlayCollection, async (playByPlay) => {
 		const clock = _.get(playByPlay, "clock")
 		const eventMsgType = _.get(playByPlay, "eventMsgType")
 		const eventMsgDescription = _.get(eventMsgMap, eventMsgType)
@@ -177,7 +214,8 @@ async function insertPlayByPlay(scrapedPlayByPlayGame, redisQueue, queueName) {
 		const awayTeamScore = _.get(playByPlay, "vTeamScore")
 		const playerId = _.get(playByPlay, "personId")
 
-		const playByPlayInfo = {
+		// NOTE: playerId can be a teamId for team turnover/rebounds etc.
+		const playByPlayInfo: Partial<NbaPlayByPlay> = {
 			gameId,
 			gameDate: pstDate,
 			quarter: quarterToPull,
@@ -188,7 +226,8 @@ async function insertPlayByPlay(scrapedPlayByPlayGame, redisQueue, queueName) {
 			teamId: _.size(teamId) ? teamId : undefined,
 			homeTeamScore,
 			awayTeamScore,
-			playerId: _.size(playerId) ? playerId : undefined,
+			// Only use playerId if it is not a team and it is a valid string
+			playerId: !_.get(teamCache, playerId) && _.size(playerId) > 0 ? playerId : undefined,
 		};
 
 		try {
@@ -201,58 +240,22 @@ async function insertPlayByPlay(scrapedPlayByPlayGame, redisQueue, queueName) {
 			});
 			if (nbaPlayByPlay) {
 				alreadyLoadedBool = true;
-				// console.log(`${_.get(nbaPlayByPlay, "clock")} ${_.get(nbaPlayByPlay, "eventMsgType")} already loaded!`);
 			} else {
-				nbaPlayByPlay = await NbaPlayByPlay.query().insert(playByPlayInfo);
-				sendToRedisQueue(nbaPlayByPlay, redisQueue, queueName)
-				// console.log(`${_.get(nbaPlayByPlay, "clock")} ${_.get(nbaPlayByPlay, "eventMsgType")} loaded!`);
+				playsToBeInserted.push(playByPlayInfo);
 			}
-
-			await incrementGameQuarterState({
-				eventMsgType,
-				quarterToPull,
-				homeTeamScore,
-				awayTeamScore,
-				gameId
-			});
 		} catch (err) {
-
-			try {
-				// For timeouts and a couple other events, the player_id is actually the team_id, so check it and insert it accordingly
-				const nbaTeam = await NbaTeam.query().findOne({
-					id: playerId
-				})
-				console.log('nbaTeam', nbaTeam);
-				if (nbaTeam) {
-					const playByPlayInfo = {
-						gameId,
-						gameDate: pstDate,
-						quarter: quarterToPull,
-						clock,
-						eventMsgType,
-						eventMsgDescription,
-						description,
-						teamId: _.size(playerId) ? playerId : undefined,
-						homeTeamScore,
-						awayTeamScore,
-						playerId: undefined,
-					};
-					nbaPlayByPlay = await NbaPlayByPlay.query().insert(playByPlayInfo);
-					sendToRedisQueue(nbaPlayByPlay, redisQueue, queueName)
-				}
-			} catch (err) {
-				console.log('err', err);
-				console.log('playByPlayInfo', playByPlayInfo);
-			}
+			console.log('err', err);
 		}
 	})
 	if (alreadyLoadedBool) {
 		console.log(`Some events in ${gameId} were already loaded!`);
 	}
+
+	return playsToBeInserted;
 }
 
-async function sendToRedisQueue(nbaPlayByPlay, redisQueue, queueName) {
-	if (_.get(play, "eventMsgType") === 13 || _.get(play, "eventMsgType") === 12) {
-		redisQueue.sendToRedisQueue(queueName, nbaPlayByPlay);
+async function sendToRedisQueue(nbaPlayByPlay: NbaPlayByPlay, redisQueue: RedisQueue, queueName) {
+	if (_.get(nbaPlayByPlay, "eventMsgType") === 13 || _.get(nbaPlayByPlay, "eventMsgType") === 12) {
+		await redisQueue.sendRedisQueueMsg(queueName, nbaPlayByPlay);
 	}
 }
