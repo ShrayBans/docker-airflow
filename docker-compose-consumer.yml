@@ -9,5 +9,6 @@ services:
             - PLAY_BY_PLAY_QUEUE=prod-pbp
         volumes:
             - ./build:/app/build
+            - ./node_modules:/usr/local/airflow/node_modules
         restart: always
         command: node ./build/consumerJobs/playByPlayEventConsumer.js

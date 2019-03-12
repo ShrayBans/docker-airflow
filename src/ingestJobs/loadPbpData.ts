@@ -47,7 +47,7 @@ const slackClient = new SlackClient()
 async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)
 	const redisQueue: RedisQueue = new RedisQueue(process.env.REDIS_HOST, process.env.REDIS_PORT);
-    const queueName = process.env.PLAY_BY_PLAY_QUEUE || "prod-pbp";
+	const queueName = process.env.PLAY_BY_PLAY_QUEUE || "prod-pbp";
 	await redisQueue.createQueue(queueName);
 	const nbaTeams = await NbaTeam.query();
 
