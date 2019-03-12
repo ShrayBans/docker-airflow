@@ -12,6 +12,7 @@ const _ = require("lodash")
 const moment = require('moment-timezone');
 
 import { getRandomInterval } from "../lib/utils"
+import { SlackClient } from '../lib/slackClient';
 
 const eventMsgMap = {
 	1: "Shot Made",
@@ -35,11 +36,13 @@ run().then(() => {
 		process.exit(0)
 	})
 	.catch((err) => {
+		slackClient.sendMessage(JSON.stringify(err));
 		console.error(err);
 		process.exit(1)
 	});
 
 const teamCache = {}
+const slackClient = new SlackClient()
 
 async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)
@@ -87,12 +90,12 @@ async function run() {
 
 						// Inserting and sending to downstream redis
 						const beforeInsert = Date.now();
-						await NbaPlayByPlay.query().insert(pbpToBeInserted);
+						const insertedPlayByPlays = await NbaPlayByPlay.query().insertAndFetch(pbpToBeInserted);
 						const afterInsert = Date.now();
 						console.log('Time to insert', afterInsert-beforeInsert);
 
 						// Incrementing quarter to be fetched as well as sending associated events to redis queue
-						await Bluebird.each(pbpToBeInserted, async (nbaPlayByPlay: NbaPlayByPlay) => {
+						await Bluebird.each(insertedPlayByPlays, async (nbaPlayByPlay: NbaPlayByPlay) => {
 							const { eventMsgType,
 								quarter,
 								homeTeamScore,
@@ -113,6 +116,7 @@ async function run() {
 				}
 			}, randomInterval)
 		} catch (err) {
+			slackClient.sendMessage(JSON.stringify(err));
 			reject(err)
 		}
 	})
@@ -244,7 +248,8 @@ async function getPlayByPlaysToBeInserted(scrapedPlayByPlayGame, redisQueue, que
 				playsToBeInserted.push(playByPlayInfo);
 			}
 		} catch (err) {
-			console.log('err', err);
+			console.error('err', err);
+			slackClient.sendMessage(JSON.stringify(err));
 		}
 	})
 	if (alreadyLoadedBool) {
@@ -255,7 +260,8 @@ async function getPlayByPlaysToBeInserted(scrapedPlayByPlayGame, redisQueue, que
 }
 
 async function sendToRedisQueue(nbaPlayByPlay: NbaPlayByPlay, redisQueue: RedisQueue, queueName) {
-	if (_.get(nbaPlayByPlay, "eventMsgType") === 13 || _.get(nbaPlayByPlay, "eventMsgType") === 12) {
+	if (_.get(nbaPlayByPlay, "eventMsgType") == 13 || _.get(nbaPlayByPlay, "eventMsgType") == 12) {
+		console.log('sending message with nbaPlayByPlayId: ', nbaPlayByPlay.id);
 		await redisQueue.sendRedisQueueMsg(queueName, nbaPlayByPlay);
 	}
 }

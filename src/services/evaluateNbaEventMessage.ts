@@ -1,6 +1,6 @@
 import * as _ from "lodash";
 import { RedisClient } from "redis";
-import { NbaGame } from "sixthman-objection-models";
+import { NbaGame, NbaPlayByPlay } from "sixthman-objection-models";
 
 import { answerAutomatedQuestion } from "../services/answerAutomatedQuestion";
 import { createScheduledQuestionsPerGame } from "../services/createScheduledQuestions";
@@ -15,9 +15,10 @@ import { closeAutomatedQuestion } from "./automatedQuestionCloser";
  * @param redisClient
  */
 export function evaluateNbaEventMessage(redisClient: RedisClient) {
-    return async function(receivedPlayByPlayEvent) {
+    return async function(receivedPlayByPlayEvent: NbaPlayByPlay) {
         const gameId = _.get(receivedPlayByPlayEvent, "gameId");
         const game = await NbaGame.query().findById(gameId);
+        console.log(`received nba play by play event from: id ${receivedPlayByPlayEvent.id} and gameId ${gameId}`);
 
         // NOTE: Currently filtering out every other event other than 12 and 13 in `sendToRedisQueue`
         const eventMsgType = _.get(receivedPlayByPlayEvent, "eventMsgType");
