@@ -12,7 +12,8 @@
     "loadPbp": "yarn build && node ./build/ingestJobs/loadPbpData.js",
     "playByPlayEventConsumer": "yarn build && node ./build/consumerJobs/playByPlayEventConsumer.js",
     "createRollingPlayerStats": "ts-node -T ./src/createJobs/createRollingPlayerStats.ts",
-    "scrapeBoxScore": "ts-node -T ./src/ingestJobs/scrapeNbaBoxscore.ts"
+    "scrapeBoxScore": "ts-node -T ./src/ingestJobs/scrapeNbaBoxscore.ts",
+    "runFakeGame": "ts-node -T ./src/test/scripts/runFakeGameProd.ts"
   },
   "dependencies": {
     "@slack/client": "^4.11.0",

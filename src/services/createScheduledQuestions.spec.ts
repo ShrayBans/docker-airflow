@@ -168,7 +168,7 @@ describe("Create Scheduled Questions", async () => {
         });
     });
 
-    describe.only("#getAllScheduledAutomatedQuestions", async () => {
+    describe("#getAllScheduledAutomatedQuestions", async () => {
         describe("Can get Scheduled Questions", async () => {
             it("when there is a channelId and no postDate", async () => {
                 await bootstrapScheduledQuestions([
