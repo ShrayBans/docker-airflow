@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "ts-node-dev": "./node-dev_modules/ts-node-dev/bin/ts-node --transpileOnly --respawn",
     "scheduledQuestionCreator": "ts-node -T ./src/test/scheduledQuestionCreator.ts",
-    "scheduledQuestionGroupCreator": "node ./src/createJobs/scheduledQuestionGroupCreator.js",
+    "scheduledQuestionGroupCreator": "node ./build/createJobs/scheduledQuestionGroupCreator.js",
     "loadPbp": "yarn build && node ./build/ingestJobs/loadPbpData.js",
     "playByPlayEventConsumer": "yarn build && node ./build/consumerJobs/playByPlayEventConsumer.js",
     "createRollingPlayerStats": "ts-node -T ./src/createJobs/createRollingPlayerStats.ts",

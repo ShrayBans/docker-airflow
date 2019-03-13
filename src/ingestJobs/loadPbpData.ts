@@ -32,6 +32,9 @@ const eventMsgMap = {
 	20: "Stoppage"
 }
 
+const teamCache = {}
+const slackClient = new SlackClient()
+
 run().then(() => {
 		process.exit(0)
 	})
@@ -40,9 +43,6 @@ run().then(() => {
 		console.error(err);
 		process.exit(1)
 	});
-
-const teamCache = {}
-const slackClient = new SlackClient()
 
 async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)

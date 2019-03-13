@@ -24,6 +24,7 @@ export class SlackClient {
     }
 
     async sendMessage(text: string) {
+        console.log('text', text);
         return new Promise((resolve, reject) => {
             this.slackClient.webhook({
                 channel: this.channel,

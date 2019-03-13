@@ -1,3 +1,6 @@
+import { SlackClient } from "../lib/slackClient";
+import { createQuestionsPerChannel } from "../services/createScheduledQuestions";
+
 const {
 	instantiateKnex
 } = require("../lib/knex.js")
@@ -11,9 +14,17 @@ const {
 	QuestionGroup
 } = require("sixthman-objection-models")
 
+const slackClient = new SlackClient()
+
+
 run().then(() => {
 	process.exit(0)
 }).catch((err) => {
+	slackClient.sendMessage(JSON.stringify({
+		name: err.name,
+		message: err.message,
+		stack: err.stack,
+	}));
 	console.error(err);
 	process.exit(1)
 });
@@ -39,17 +50,20 @@ async function run() {
 			});
 
 			// Creates Scheduled Questions Associated
-			const createdQuestions = await Bluebird.each(createdQuestionGroups, async(createdQuestionGroup) => {
+			await Bluebird.each(createdQuestionGroups, async(createdQuestionGroup) => {
 				const {
 					awayTeamQuestionGroup,
 					homeTeamQuestionGroup
 				} = createdQuestionGroup
 
-				const { channelId: awayChannelId } = awayTeamQuestionGroup;
-				const { channelId: homeChannelId } = homeTeamQuestionGroup;
-
-				const createdAwayQuestions = await createQuestionsPerChannel("pregame", awayChannelId);
-				const createdHomeQuestions = await createQuestionsPerChannel("pregame", homeChannelId);
+				if (awayTeamQuestionGroup) {
+					const { channelId: awayChannelId } = awayTeamQuestionGroup;
+					await createQuestionsPerChannel("pregame", awayChannelId);
+				}
+				if (homeTeamQuestionGroup) {
+					const { channelId: homeChannelId } = homeTeamQuestionGroup;
+					await createQuestionsPerChannel("pregame", homeChannelId);
+				}
 			})
 
 			// Extra Scheduled Channel Questions
@@ -79,22 +93,25 @@ async function createQuestionGroup(nbaGame) {
 	const questionGroups = await QuestionGroup.query().where({
 		nba_game_id: nbaGameId
 	})
+	console.log('questionGroups', questionGroups);
 	const gameName = _.get(nbaGame, ["awayTeam", "fullName"]) + " @ " + _.get(nbaGame, ["homeTeam", "fullName"]);
 
+	let awayTeamQuestionGroup;
+	let homeTeamQuestionGroup;
 	if (_.size(questionGroups) === 0) {
-		const awayTeamQuestionGroup = await QuestionGroup.query().insertGraphAndFetch({
+		awayTeamQuestionGroup = await QuestionGroup.query().insertGraphAndFetch({
 			channelId: _.get(nbaGameAway, ["channel", "id"]),
 			nba_game_id: nbaGameId,
 			name: `${_.get(nbaGame, ["awayTeam", "fullName"])} View: ${gameName}`
 		}).eager("nbaGame");
 
-		console.log(`${_.get(awayTeam, "name")} question group was created`)
-		const homeTeamQuestionGroup = await QuestionGroup.query().insertGraphAndFetch({
+		console.log(`${_.get(awayTeamQuestionGroup, "name")} question group was created`)
+		homeTeamQuestionGroup = await QuestionGroup.query().insertGraphAndFetch({
 			channelId: _.get(nbaGameHome, ["channel", "id"]),
 			nba_game_id: nbaGameId,
 			name: `${_.get(nbaGame, ["homeTeam", "fullName"])} View: ${gameName}`
 		}).eager("nbaGame");;
-		console.log(`${_.get(homeTeam, "name")} question group was created`)
+		console.log(`${_.get(homeTeamQuestionGroup, "name")} question group was created`)
 	}
 
 	return {
