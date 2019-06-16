@@ -1,5 +1,6 @@
 import { SlackClient } from "../lib/slackClient";
 import { createQuestionsPerChannel } from "../services/createScheduledQuestions";
+import { singlePromise } from "../lib/runUtils";
 
 const {
 	instantiateKnex
@@ -14,18 +15,12 @@ const {
 	QuestionGroup
 } = require("sixthman-objection-models")
 
-const slackClient = new SlackClient()
+const slackClient = new SlackClient("Scheduled Question Group Creator")
 
 
 run().then(() => {
 	process.exit(0)
 }).catch((err) => {
-	slackClient.sendMessage(JSON.stringify({
-		name: err.name,
-		message: err.message,
-		stack: err.stack,
-	}));
-	console.error(err);
 	process.exit(1)
 });
 
@@ -35,46 +30,46 @@ run().then(() => {
 async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)
 
-	return new Promise(async (resolve, reject) => {
-		try {
-			const hoursAfterDate = moment(new Date()).add(18, 'hours').toDate()
-			const gamesToCreate = await getGamesStartingBefore(hoursAfterDate);
-
-			if (_.size(gamesToCreate) == 0) {
-				console.log('No games found to be created');
-			}
-
-			// Creates Question Groups
-			const createdQuestionGroups = await Bluebird.map(gamesToCreate, async (nbaGame) => {
-				return createQuestionGroup(nbaGame);
-			});
-
-			// Creates Scheduled Questions Associated
-			await Bluebird.each(createdQuestionGroups, async(createdQuestionGroup) => {
-				const {
-					awayTeamQuestionGroup,
-					homeTeamQuestionGroup
-				} = createdQuestionGroup
-
-				if (awayTeamQuestionGroup) {
-					const { channelId: awayChannelId } = awayTeamQuestionGroup;
-					await createQuestionsPerChannel("pregame", awayChannelId);
-				}
-				if (homeTeamQuestionGroup) {
-					const { channelId: homeChannelId } = homeTeamQuestionGroup;
-					await createQuestionsPerChannel("pregame", homeChannelId);
-				}
-			})
-
-			// Extra Scheduled Channel Questions
-			// General Channel
-			await createQuestionsPerChannel("pregame", 0)
-
-			return resolve(true)
-		} catch (err) {
-			reject(err);
-		}
+	return singlePromise(mainCallback).catch((err) => {
+		return slackClient.sendError(err);
 	})
+
+	async function mainCallback() {
+		const hoursAfterDate = moment(new Date()).add(18, 'hours').toDate()
+		const gamesToCreate = await getGamesStartingBefore(hoursAfterDate);
+		if (_.size(gamesToCreate) == 0) {
+			console.log(`Exit criteria met. Exiting..`);
+			return;
+		}
+
+		// Creates Question Groups
+		const createdQuestionGroups = await Bluebird.map(gamesToCreate, async (nbaGame) => {
+			return createQuestionGroup(nbaGame);
+		});
+
+		// Creates Scheduled Questions Associated
+		await Bluebird.each(createdQuestionGroups, async(createdQuestionGroup) => {
+			const {
+				awayTeamQuestionGroup,
+				homeTeamQuestionGroup
+			} = createdQuestionGroup
+
+			if (awayTeamQuestionGroup) {
+				const { channelId: awayChannelId } = awayTeamQuestionGroup;
+				await createQuestionsPerChannel("pregame", awayChannelId);
+			}
+			if (homeTeamQuestionGroup) {
+				const { channelId: homeChannelId } = homeTeamQuestionGroup;
+				await createQuestionsPerChannel("pregame", homeChannelId);
+			}
+		})
+
+		// Extra Scheduled Channel Questions
+		// General Channel
+		await createQuestionsPerChannel("pregame", 0)
+
+	}
+
 }
 
 async function getGamesStartingBefore(date = new Date()) {

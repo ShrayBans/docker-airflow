@@ -3,7 +3,9 @@ export async function singlePromise(callback: Function) {
         try {
             // Keep going until games are over
 
-            await callback();
+            await callback().catch((err) => {
+                reject(err);
+            });
 
             return resolve(true);
         } catch (err) {
@@ -12,26 +14,43 @@ export async function singlePromise(callback: Function) {
     });
 }
 
-export async function loopingPromise(exitCallback: Function, callback: Function, intervalTime: number) {
+export async function loopingPromise(exitCallback: Function, callback: Function, intervalTime: number, lockEnabled: boolean = false) {
+    let lock: boolean = false;
     return new Promise(async (resolve, reject) => {
         try {
             console.log(`Waiting ${intervalTime}ms to run.`);
-            const preCheck: boolean = await exitCallback();
+            const preCheck: boolean = await exitCallback().catch((err) => {
+                reject(err);
+            });
             if (preCheck) {
                 console.log(`Exit criteria met. Exiting..`);
                 return resolve(true);
             }
-            await callback();
+            await callback().catch((err) => {
+                reject(err);
+            });;
 
             const interval = setInterval(async () => {
-                const preCheck: boolean = await exitCallback();
-                if (preCheck) {
-                    console.log(`Exit criteria met. Exiting..`);
-                    clearInterval(interval);
-                    return resolve(true);
+                if (!lockEnabled || lock === false) {
+                    lock = true;
+                    const preCheck: boolean = await exitCallback().catch((err) => {
+                        reject(err);
+                    });;
+                    if (preCheck) {
+                        console.log(`Exit criteria met. Exiting..`);
+                        clearInterval(interval);
+                        return resolve(true);
+                    }
+
+                    await callback()
+                    .then(() => {
+                        lock = false
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });;
                 }
 
-                await callback();
             }, intervalTime);
         } catch (err) {
             reject(err);

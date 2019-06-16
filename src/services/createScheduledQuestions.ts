@@ -125,7 +125,6 @@ export async function createScheduledQuestions(quarterTrigger: string, channelId
         quarterTrigger,
         channelId,
     );
-    console.log('scheduledAutomatedQuestions', scheduledAutomatedQuestions);
 
     return Bluebird.map(scheduledAutomatedQuestions, async (scheduledAutomatedQuestion: ScheduledNbaAutomatedQuestion) => {
         // Checks to see if there are any scheduledQuestions with answers

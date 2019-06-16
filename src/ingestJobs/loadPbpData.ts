@@ -13,8 +13,10 @@ const moment = require('moment-timezone');
 
 import { getRandomInterval } from "../lib/utils"
 import { SlackClient } from '../lib/slackClient';
+import { loopingPromise } from "../lib/runUtils";
 
 const eventMsgMap = {
+	0: "Unknown",
 	1: "Shot Made",
 	2: "Shot Missed",
 	3: "Free Throw Make/Miss",
@@ -33,21 +35,21 @@ const eventMsgMap = {
 }
 
 const teamCache = {}
-const slackClient = new SlackClient()
+const slackClient = new SlackClient("Play By Play Scraper")
+const redisQueue: RedisQueue = new RedisQueue(process.env.REDIS_HOST, process.env.REDIS_PORT);
+const queueName = process.env.PLAY_BY_PLAY_QUEUE || "prod-pbp";
+
 
 run().then(() => {
 		process.exit(0)
 	})
 	.catch((err) => {
-		slackClient.sendMessage(JSON.stringify(err));
-		console.error(err);
+		console.error(`Uncaught Error: ${err}`);
 		process.exit(1)
 	});
 
 async function run() {
 	await instantiateKnex(process.env.DATABASE_API_CONNECTION)
-	const redisQueue: RedisQueue = new RedisQueue(process.env.REDIS_HOST, process.env.REDIS_PORT);
-	const queueName = process.env.PLAY_BY_PLAY_QUEUE || "prod-pbp";
 	await redisQueue.createQueue(queueName);
 	const nbaTeams = await NbaTeam.query();
 
@@ -55,70 +57,76 @@ async function run() {
 		_.set(teamCache, _.get(nbaTeam, "id"), nbaTeam);
 	});
 
-	return new Promise((resolve, reject) => {
-		try {
-			const randomInterval = 3000;
-			let lock = false;
-			console.log(`Starting NBA Play by Play scraper with random interval of ${randomInterval / 1000 } seconds`);
+	return loopingPromise(exitCallback, mainCallback, 3000, true).catch((err) => {
+		return slackClient.sendError(err);
+	});
 
-			const interval = setInterval(async () => {
-				if (lock === false) {
-					lock = true;
-					const thirtyMinuteAfterDate = moment(new Date()).add(30, 'minutes').toDate()
-					const gamesToPull = await getGamesStartingBefore(thirtyMinuteAfterDate);
-					const filteredGamesToPull = _.chain(gamesToPull).orderBy("gameDatetime").slice(0, 10).value()
+	// return new Promise((resolve, reject) => {
+	// 	try {
+	// 		const randomInterval = 3000;
+	// 		let lock = false;
+	// 		console.log(`Starting NBA Play by Play scraper with random interval of ${randomInterval / 1000 } seconds`);
 
-					if (!_.size(filteredGamesToPull)) {
-						clearInterval(interval)
-						return resolve(true)
-					}
+	// 		const interval = setInterval(, randomInterval)
+	// 	} catch (err) {
+	// 		reject(err)
+	// 	}
+	// }).catch((err) => {
+	// 	console.log('err123', err);
+	// 	slackClient.sendError(err);
+	// })
+}
 
-					console.log(`${_.size(filteredGamesToPull)} games left to find play by plays for!`);
+async function exitCallback() {
+	const thirtyMinuteAfterDate = moment(new Date()).add(30, 'minutes').toDate()
+	const gamesToPull = await getGamesStartingBefore(thirtyMinuteAfterDate);
+	const filteredGamesToPull = _.chain(gamesToPull).orderBy("gameDatetime").slice(0, 10).value()
+	return !_.size(filteredGamesToPull);
+}
 
-					// If quarter has completed, then send a message to Redis Pub Sub and change status to next quarter (not_started, 1, 2, 3, 4, 5, completed)
-					const beforeScrape = Date.now();
-					const playByPlayCollectionSets = await Bluebird.map(filteredGamesToPull, async (gameObject) => scrapePlayByPlayCollection(gameObject))
-					const afterScrape = Date.now();
-					console.log('Time to scrape', afterScrape-beforeScrape);
+async function mainCallback() {
+	const thirtyMinuteAfterDate = moment(new Date()).add(30, 'minutes').toDate()
+	const gamesToPull = await getGamesStartingBefore(thirtyMinuteAfterDate);
+	const filteredGamesToPull = _.chain(gamesToPull).orderBy("gameDatetime").slice(0, 10).value()
 
-					// Checking if playByPlay has been inserted, and if not, then inserting them into the DB
-					await Bluebird.each(playByPlayCollectionSets, async (scrapedGamePlayByPlays) => {
-						const beforePbp = Date.now();
-						const pbpToBeInserted: Partial<NbaPlayByPlay>[] = await getPlayByPlaysToBeInserted(scrapedGamePlayByPlays, redisQueue, queueName);
-						const afterPbp = Date.now();
-						console.log('Time to check if play by plays have been inserted', afterPbp-beforePbp);
+	console.log(`${_.size(filteredGamesToPull)} games left to find play by plays for!`);
 
-						// Inserting and sending to downstream redis
-						const beforeInsert = Date.now();
-						const insertedPlayByPlays = await NbaPlayByPlay.query().insertAndFetch(pbpToBeInserted);
-						const afterInsert = Date.now();
-						console.log('Time to insert', afterInsert-beforeInsert);
+	// If quarter has completed, then send a message to Redis Pub Sub and change status to next quarter (not_started, 1, 2, 3, 4, 5, completed)
+	const beforeScrape = Date.now();
+	const playByPlayCollectionSets = await Bluebird.map(filteredGamesToPull, async (gameObject) => scrapePlayByPlayCollection(gameObject))
+	const afterScrape = Date.now();
+	console.log('Time to scrape', afterScrape-beforeScrape);
 
-						// Incrementing quarter to be fetched as well as sending associated events to redis queue
-						await Bluebird.each(insertedPlayByPlays, async (nbaPlayByPlay: NbaPlayByPlay) => {
-							const { eventMsgType,
-								quarter,
-								homeTeamScore,
-								awayTeamScore,
-								gameId } = nbaPlayByPlay;
-							await incrementGameQuarterState({
-								eventMsgType,
-								quarter,
-								homeTeamScore,
-								awayTeamScore,
-								gameId
-							});
-							await sendToRedisQueue(nbaPlayByPlay, redisQueue, queueName);
-						});
+	// Checking if playByPlay has been inserted, and if not, then inserting them into the DB
+	await Bluebird.each(playByPlayCollectionSets, async (scrapedGamePlayByPlays) => {
+		const beforePbp = Date.now();
+		const pbpToBeInserted: Partial<NbaPlayByPlay>[] = await getPlayByPlaysToBeInserted(scrapedGamePlayByPlays, redisQueue, queueName);
+		const afterPbp = Date.now();
+		console.log('Time to check if play by plays have been inserted', afterPbp-beforePbp);
 
-					})
-					lock = false;
-				}
-			}, randomInterval)
-		} catch (err) {
-			slackClient.sendMessage(JSON.stringify(err));
-			reject(err)
-		}
+		// Inserting and sending to downstream redis
+		const beforeInsert = Date.now();
+		const insertedPlayByPlays = await NbaPlayByPlay.query().insertAndFetch(pbpToBeInserted);
+		const afterInsert = Date.now();
+		console.log('Time to insert', afterInsert-beforeInsert);
+
+		// Incrementing quarter to be fetched as well as sending associated events to redis queue
+		await Bluebird.each(insertedPlayByPlays, async (nbaPlayByPlay: NbaPlayByPlay) => {
+			const { eventMsgType,
+				quarter,
+				homeTeamScore,
+				awayTeamScore,
+				gameId } = nbaPlayByPlay;
+			await incrementGameQuarterState({
+				eventMsgType,
+				quarter,
+				homeTeamScore,
+				awayTeamScore,
+				gameId
+			});
+			await sendToRedisQueue(nbaPlayByPlay, redisQueue, queueName);
+		});
+
 	})
 }
 
@@ -148,12 +156,7 @@ async function scrapePlayByPlayCollection(gameObject) {
 	const URL_TO_SCRAPE = `https://data.nba.net/prod/v1/${pstDate}/00${gameId}_pbp_${quarterToPull}.json`
 	console.log('URL_TO_SCRAPE', URL_TO_SCRAPE);
 
-	let playByPlayRaw;
-	try {
-		playByPlayRaw = await axios.get(URL_TO_SCRAPE);
-	} catch (err) {
-		console.error(err.message)
-	}
+	const playByPlayRaw = await axios.get(URL_TO_SCRAPE)
 
 	return {
 		gameId,
@@ -249,7 +252,7 @@ async function getPlayByPlaysToBeInserted(scrapedPlayByPlayGame, redisQueue, que
 			}
 		} catch (err) {
 			console.error('err', err);
-			slackClient.sendMessage(JSON.stringify(err));
+			slackClient.sendError(err);
 		}
 	})
 	if (alreadyLoadedBool) {

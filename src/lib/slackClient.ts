@@ -1,6 +1,7 @@
 import * as Slack from "slack-node"
 
 export class SlackClient {
+    appName: string;
     channel: string;
     username: string;
     iconEmoji: string;
@@ -12,12 +13,12 @@ export class SlackClient {
      * @param username
      * @param iconEmoji
      */
-    constructor(channel = "#airflow-alerts", username = "Lebrawwwwn James", iconEmoji = ":ghost:") {
+    constructor(appName="Please configure app name", channel = "#airflow-alerts", username = "Lebrawwwwn James", iconEmoji = ":ghost:") {
         const webhookUri = "https://hooks.slack.com/services/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";
-
         this.slackClient = new Slack();
         this.slackClient.setWebhook(webhookUri);
 
+        this.appName = appName;
         this.channel = channel;
         this.username = username;
         this.iconEmoji = iconEmoji;
@@ -30,14 +31,24 @@ export class SlackClient {
                 channel: this.channel,
                 username: this.username,
                 icon_emoji: this.iconEmoji,
-                text: text
+                text: `${this.appName}: ${"```" + text + "```"}`
             }, (err, response) => {
                 if (err) {
+                    console.log('err', err);
                     reject(err);
                 } else {
                     resolve(response);
                 }
             })
         })
+    }
+
+    async sendError(error: Error) {
+        const formattedError: string = JSON.stringify({
+            message: error.message,
+            stack: error.stack,
+            type: "ERROR"
+        })
+        await this.sendMessage(formattedError)
     }
 }
