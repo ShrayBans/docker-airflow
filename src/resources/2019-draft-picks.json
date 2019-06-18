@@ -1,0 +1,562 @@
+{
+    "players": [
+        {
+            "playerName": "Zion Williamson"
+        },
+        {
+            "playerName": "Ja Morant"
+        },
+        {
+            "playerName": "RJ Barrett"
+        },
+        {
+            "playerName": "Darius Garland"
+        },
+        {
+            "playerName": "Coby White"
+        },
+        {
+            "playerName": "Jarrett Culver"
+        },
+        {
+            "playerName": "De'Andre Hunter"
+        },
+        {
+            "playerName": "Cam Reddish"
+        },
+        {
+            "playerName": "Jaxson Hayes"
+        },
+        {
+            "playerName": "Goga Bitadze"
+        },
+        {
+            "playerName": "Nassir Little"
+        },
+        {
+            "playerName": "Brandon Clarke"
+        },
+        {
+            "playerName": "Cameron Johnson"
+        },
+        {
+            "playerName": "Kevin Porter Jr."
+        },
+        {
+            "playerName": "PJ Washington"
+        },
+        {
+            "playerName": "Romeo Langford"
+        },
+        {
+            "playerName": "Rui Hachimura"
+        },
+        {
+            "playerName": "Nickeil Alexander-Walker"
+        },
+        {
+            "playerName": "Tyler Herro"
+        },
+        {
+            "playerName": "Bol Bol"
+        },
+        {
+            "playerName": "Keldon Johnson"
+        },
+        {
+            "playerName": "Mfiondu Kabengele"
+        },
+        {
+            "playerName": "Nicolas Claxton"
+        },
+        {
+            "playerName": "Ty Jerome"
+        },
+        {
+            "playerName": "Matisse Thybulle"
+        },
+        {
+            "playerName": "Luguentz Dort"
+        },
+        {
+            "playerName": "Bruno Fernando"
+        },
+        {
+            "playerName": "KZ Okpala"
+        },
+        {
+            "playerName": "Eric Paschall"
+        },
+        {
+            "playerName": "Talen Horton-Tucker"
+        },
+        {
+            "playerName": "Carsen Edwards"
+        },
+        {
+            "playerName": "Isaiah Roby"
+        },
+        {
+            "playerName": "Chuma Okeke"
+        },
+        {
+            "playerName": "Grant Williams"
+        },
+        {
+            "playerName": "Dylan Windler"
+        },
+        {
+            "playerName": "Admiral Schofield"
+        },
+        {
+            "playerName": "Terence Davis"
+        },
+        {
+            "playerName": "Daniel Gafford"
+        },
+        {
+            "playerName": "Jontay Porter"
+        },
+        {
+            "playerName": "Louis King"
+        },
+        {
+            "playerName": "Zach Norvell Jr."
+        },
+        {
+            "playerName": "DaQuan Jeffries"
+        },
+        {
+            "playerName": "Shamorie Ponds"
+        },
+        {
+            "playerName": "Tremont Waters"
+        },
+        {
+            "playerName": "Miye Oni"
+        },
+        {
+            "playerName": "Jalen McDaniels"
+        },
+        {
+            "playerName": "Jaylen Hoard"
+        },
+        {
+            "playerName": "Terance Mann"
+        },
+        {
+            "playerName": "Zylan Cheatham"
+        },
+        {
+            "playerName": "Jordan Bone"
+        },
+        {
+            "playerName": "Jaylen Nowell"
+        },
+        {
+            "playerName": "Dedric Lawson"
+        },
+        {
+            "playerName": "Jordan Poole"
+        },
+        {
+            "playerName": "Jared Harper"
+        },
+        {
+            "playerName": "Quinndary Weatherspoon"
+        },
+        {
+            "playerName": "Naz Reid"
+        },
+        {
+            "playerName": "Jarrey Foster"
+        },
+        {
+            "playerName": "Simi Shittu"
+        },
+        {
+            "playerName": "Cody Martin"
+        },
+        {
+            "playerName": "Justin Wright-Foreman"
+        },
+        {
+            "playerName": "Justin Robinson"
+        },
+        {
+            "playerName": "Ignas Brazdeikis"
+        },
+        {
+            "playerName": "Max Strus"
+        },
+        {
+            "playerName": "Charles Matthews"
+        },
+        {
+            "playerName": "Kenny Wooten"
+        },
+        {
+            "playerName": "Tacko Fall"
+        },
+        {
+            "playerName": "Jordan Caroline"
+        },
+        {
+            "playerName": "Charlie Brown"
+        },
+        {
+            "playerName": "Tyus Battle"
+        },
+        {
+            "playerName": "Ky Bowman"
+        },
+        {
+            "playerName": "Kyle Guy"
+        },
+        {
+            "playerName": "Jaylen Hands"
+        },
+        {
+            "playerName": "Dewan Hernandez"
+        },
+        {
+            "playerName": "Sagaba Konate"
+        },
+        {
+            "playerName": "John Konchar"
+        },
+        {
+            "playerName": "Kerwin Roach II"
+        },
+        {
+            "playerName": "Amir Coffey"
+        },
+        {
+            "playerName": "Lindell Wigginton"
+        },
+        {
+            "playerName": "Kris Wilkes"
+        },
+        {
+            "playerName": "Tyler Cook"
+        },
+        {
+            "playerName": "Donta Hall"
+        },
+        {
+            "playerName": "Rayjon Tucker"
+        },
+        {
+            "playerName": "Ethan Happ"
+        },
+        {
+            "playerName": "Justin James"
+        },
+        {
+            "playerName": "Josh Reaves"
+        },
+        {
+            "playerName": "Dean Wade"
+        },
+        {
+            "playerName": "Aubrey Dawkins"
+        },
+        {
+            "playerName": "Chris Clemons"
+        },
+        {
+            "playerName": "Robert Franks"
+        },
+        {
+            "playerName": "Oshae Brissett"
+        },
+        {
+            "playerName": "James Palmer Jr."
+        },
+        {
+            "playerName": "Garrison Mathews"
+        },
+        {
+            "playerName": "Moses Brown"
+        },
+        {
+            "playerName": "Ja Morant"
+        },
+        {
+            "playerName": "Darius Garland"
+        },
+        {
+            "playerName": "Coby White"
+        },
+        {
+            "playerName": "Carsen Edwards"
+        },
+        {
+            "playerName": "Shamorie Ponds"
+        },
+        {
+            "playerName": "Tremont Waters"
+        },
+        {
+            "playerName": "Jordan Bone"
+        },
+        {
+            "playerName": "Jared Harper"
+        },
+        {
+            "playerName": "Justin Wright-Foreman"
+        },
+        {
+            "playerName": "Justin Robinson"
+        },
+        {
+            "playerName": "Tyus Battle"
+        },
+        {
+            "playerName": "Ky Bowman"
+        },
+        {
+            "playerName": "Jaylen Hands"
+        },
+        {
+            "playerName": "Kerwin Roach II"
+        },
+        {
+            "playerName": "Lindell Wigginton"
+        },
+        {
+            "playerName": "Rayjon Tucker"
+        },
+        {
+            "playerName": "Chris Clemons"
+        },
+        {
+            "playerName": "Jarrett Culver"
+        },
+        {
+            "playerName": "Kevin Porter Jr."
+        },
+        {
+            "playerName": "Romeo Langford"
+        },
+        {
+            "playerName": "Nickeil Alexander-Walker"
+        },
+        {
+            "playerName": "Tyler Herro"
+        },
+        {
+            "playerName": "Keldon Johnson"
+        },
+        {
+            "playerName": "Ty Jerome"
+        },
+        {
+            "playerName": "Luguentz Dort"
+        },
+        {
+            "playerName": "Dylan Windler"
+        },
+        {
+            "playerName": "Terence Davis"
+        },
+        {
+            "playerName": "Zach Norvell Jr."
+        },
+        {
+            "playerName": "Miye Oni"
+        },
+        {
+            "playerName": "Jaylen Nowell"
+        },
+        {
+            "playerName": "Jordan Poole"
+        },
+        {
+            "playerName": "Quinndary Weatherspoon"
+        },
+        {
+            "playerName": "Cody Martin"
+        },
+        {
+            "playerName": "Charlie Brown"
+        },
+        {
+            "playerName": "Kyle Guy"
+        },
+        {
+            "playerName": "John Konchar"
+        },
+        {
+            "playerName": "Kris Wilkes"
+        },
+        {
+            "playerName": "Josh Reaves"
+        },
+        {
+            "playerName": "Garrison Mathews"
+        },
+        {
+            "playerName": "RJ Barrett"
+        },
+        {
+            "playerName": "De'Andre Hunter"
+        },
+        {
+            "playerName": "Cam Reddish"
+        },
+        {
+            "playerName": "Nassir Little"
+        },
+        {
+            "playerName": "Cameron Johnson"
+        },
+        {
+            "playerName": "Matisse Thybulle"
+        },
+        {
+            "playerName": "KZ Okpala"
+        },
+        {
+            "playerName": "Talen Horton-Tucker"
+        },
+        {
+            "playerName": "Isaiah Roby"
+        },
+        {
+            "playerName": "Admiral Schofield"
+        },
+        {
+            "playerName": "Louis King"
+        },
+        {
+            "playerName": "DaQuan Jeffries"
+        },
+        {
+            "playerName": "Terance Mann"
+        },
+        {
+            "playerName": "Jarrey Foster"
+        },
+        {
+            "playerName": "Ignas Brazdeikis"
+        },
+        {
+            "playerName": "Max Strus"
+        },
+        {
+            "playerName": "Charles Matthews"
+        },
+        {
+            "playerName": "Amir Coffey"
+        },
+        {
+            "playerName": "Justin James"
+        },
+        {
+            "playerName": "Aubrey Dawkins"
+        },
+        {
+            "playerName": "Robert Franks"
+        },
+        {
+            "playerName": "James Palmer Jr."
+        },
+        {
+            "playerName": "Zion Williamson"
+        },
+        {
+            "playerName": "Brandon Clarke"
+        },
+        {
+            "playerName": "PJ Washington"
+        },
+        {
+            "playerName": "Rui Hachimura"
+        },
+        {
+            "playerName": "Mfiondu Kabengele"
+        },
+        {
+            "playerName": "Nicolas Claxton"
+        },
+        {
+            "playerName": "Eric Paschall"
+        },
+        {
+            "playerName": "Chuma Okeke"
+        },
+        {
+            "playerName": "Grant Williams"
+        },
+        {
+            "playerName": "Jalen McDaniels"
+        },
+        {
+            "playerName": "Jaylen Hoard"
+        },
+        {
+            "playerName": "Zylan Cheatham"
+        },
+        {
+            "playerName": "Dedric Lawson"
+        },
+        {
+            "playerName": "Naz Reid"
+        },
+        {
+            "playerName": "Simi Shittu"
+        },
+        {
+            "playerName": "Kenny Wooten"
+        },
+        {
+            "playerName": "Jordan Caroline"
+        },
+        {
+            "playerName": "Dewan Hernandez"
+        },
+        {
+            "playerName": "Tyler Cook"
+        },
+        {
+            "playerName": "Donta Hall"
+        },
+        {
+            "playerName": "Dean Wade"
+        },
+        {
+            "playerName": "Oshae Brissett"
+        },
+        {
+            "playerName": "Jaxson Hayes"
+        },
+        {
+            "playerName": "Goga Bitadze"
+        },
+        {
+            "playerName": "Bol Bol"
+        },
+        {
+            "playerName": "Bruno Fernando"
+        },
+        {
+            "playerName": "Daniel Gafford"
+        },
+        {
+            "playerName": "Jontay Porter"
+        },
+        {
+            "playerName": "Tacko Fall"
+        },
+        {
+            "playerName": "Sagaba Konate"
+        },
+        {
+            "playerName": "Ethan Happ"
+        },
+        {
+            "playerName": "Moses Brown"
+        }
+    ]
+}
