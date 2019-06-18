@@ -37,13 +37,13 @@ conn = PostgresConnection(dbname="sixthman", user="sixthman", host="sixthman-pro
 
 def getNbaPlayers(conn):
     sql = text("""
-        SELECT concat(first_name, ' ', last_name) FROM nba.player
+        SELECT concat(first_name, ' ', last_name) FROM nba.player WHERE id < 0
     """)
     result = conn.engine.execute(sql)
     rows = result.fetchall()
     return rows
 
-def downloadimages(query):
+def downloadimages(query, img_directory):
     # keywords is the search query
     # format is the image file format
     # limit is the number of images to be downloaded
@@ -58,7 +58,7 @@ def downloadimages(query):
                  "print_urls":True,
                  "size": "medium",
                  "aspect_ratio": "tall",
-				 "image_directory": "nba_player_images",
+				 "image_directory": img_directory,
 				 "prefix": query }
     try:
         response.download(arguments)
@@ -84,7 +84,5 @@ nbaPlayers = getNbaPlayers(conn)
 print(nbaPlayers)
 search_queries = [nbaPlayer[0] for nbaPlayer in nbaPlayers]
 
-print(search_queries[:10])
-
 for query in search_queries:
-    downloadimages(query)
+    downloadimages(query, "nba_draft")
