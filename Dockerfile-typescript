@@ -1,0 +1,17 @@
+FROM node:10.9-alpine
+
+RUN mkdir -p /app
+WORKDIR /app
+ADD . /app
+
+RUN apk --no-cache add --virtual builds-deps build-base python
+
+RUN npm install -g -s --no-progress yarn && yarn install --network-concurrency 1
+
+RUN yarn build
+
+EXPOSE 80
+
+# CMD [ "./node_modules/pm2/bin/pm2-runtime", "pm2-process.json", "--web" ]
+# CMD [ "node", "build/start.js" ]
+# CMD [ "yarn", "start" ]

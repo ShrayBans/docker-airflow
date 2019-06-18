@@ -52,9 +52,12 @@ async function run() {
 				try {
 					let nbaPlayer = await NbaPlayer.query().findById(id);
 					if (nbaPlayer) {
-						if (_.get(nbaPlayer, "teamId") != teamId) {
-							console.log(`${_.get(nbaPlayer, "firstName")} ${_.get(nbaPlayer, "lastName")} has switched teams to team ${teamId}!`);
-							await nbaPlayer.$query().patch({ teamId: teamId });
+						if (_.get(nbaPlayer, "teamId") != _.get(playerInfo, "teamId")) {
+							const newTeamId = _.get(playerInfo, "teamId") ? _.get(playerInfo, "teamId") : 0
+							console.log(`${_.get(nbaPlayer, "firstName")} ${_.get(nbaPlayer, "lastName")} has switched teams to team ${newTeamId}!`);
+							await nbaPlayer.$query().patch({
+								teamId: newTeamId,
+							});
 						}
 						// console.log(`${_.get(nbaPlayer, "firstName")} ${_.get(nbaPlayer, "lastName")} already loaded!`);
 					} else {
@@ -73,9 +76,9 @@ async function run() {
 }
 
 run().then(() => {
-	process.exit(0)
-})
-.catch((err) => {
-	console.error(err);
-	process.exit(1)
-});
+		process.exit(0)
+	})
+	.catch((err) => {
+		console.error(err);
+		process.exit(1)
+	});

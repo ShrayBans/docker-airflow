@@ -15,5 +15,13 @@ module.exports = {
             },
         }
         await Base.knex(knex(knexConfig));
-    }
+    },
+    test: {
+        client: "postgresql",
+        connection: "postgres://postgres:postgres@0.0.0.0:5500/sixthman_test",
+        pool: {
+            min: 2,
+            max: 10,
+        },
+    },
 }

@@ -28,7 +28,7 @@ dag = DAG("nba_box_scores", default_args=default_args, schedule_interval=timedel
 t1 = BashOperator(
     task_id="nba_box_scores_task",
     pool="nba_box_scores",
-    bash_command=f"DATABASE_API_CONNECTION=postgres://sixthman:{SIXTHMAN_CONN_PASSWORD}@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman  node /usr/local/airflow/src/load_jobs/scrape_nba_boxscore.js",
+    bash_command=f"DATABASE_API_CONNECTION=postgres://sixthman:{SIXTHMAN_CONN_PASSWORD}@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman node /usr/local/airflow/build/ingestJobs/scrapeNbaBoxscore.js",
     retries=3,
     execution_timeout=timedelta(minutes=3),
     dag=dag

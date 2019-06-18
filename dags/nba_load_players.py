@@ -28,7 +28,7 @@ dag = DAG("nba_load_players", default_args=default_args, schedule_interval=timed
 t1 = BashOperator(
     task_id="nba_load_players_task",
     pool="nba_load_players",
-    bash_command=f"DATABASE_API_CONNECTION=postgres://sixthman:{SIXTHMAN_CONN_PASSWORD}@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman  node /usr/local/airflow/src/load_jobs/load_player_data.js",
+    bash_command=f"DATABASE_API_CONNECTION=postgres://sixthman:{SIXTHMAN_CONN_PASSWORD}@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman  node /usr/local/airflow/src/ingestJobs/loadPlayerData.js",
     retries=3,
     dag=dag
 )

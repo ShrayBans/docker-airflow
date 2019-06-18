@@ -1,0 +1,34 @@
+{
+    "version": "0.2.0",
+    "configurations": [{
+            "type": "node",
+            "request": "launch",
+            "name": "Watch All Files",
+            "program": "${workspaceRoot}/node_modules/.bin/jest",
+            "args": [
+                "--config",
+                "${workspaceRoot}/src/test/jest.config.js",
+                "-i",
+                "--watch"
+            ],
+            "cwd": "${workspaceRoot}",
+            "console": "integratedTerminal",
+            "sourceMaps": true,
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test Current File",
+            "program": "${workspaceRoot}/node_modules/.bin/jest",
+            "args": [
+                "--config",
+                "${workspaceRoot}/src/test/jest.config.js",
+                "${file}",
+                "--watch"
+            ],
+            "cwd": "${workspaceRoot}",
+            "console": "integratedTerminal",
+            "sourceMaps": true,
+        },
+    ]
+}

@@ -12,6 +12,6 @@ sh rsync-to-remote.sh $REMOTE_SERVER
 
 ssh $REMOTE_SERVER << EOF
     cd docker-airflow
-    docker-compose -f docker-compose-prod.yml down
-    docker-compose -f docker-compose-prod.yml up -d
+    docker-compose -f docker-compose-consumer.yml down
+    docker-compose -f docker-compose-consumer.yml up -d
 EOF

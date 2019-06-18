@@ -24,7 +24,7 @@ ENV LC_CTYPE en_US.UTF-8
 ENV LC_MESSAGES en_US.UTF-8
 
 RUN set -ex \
-    && buildDeps=' \
+        && buildDeps=' \
         python3-dev \
         libkrb5-dev \
         libsasl2-dev \
@@ -34,10 +34,10 @@ RUN set -ex \
         liblapack-dev \
         libpq-dev \
         git \
-    ' \
-    && apt-get update -yqq \
-    && apt-get upgrade -yqq \
-    && apt-get install -yqq --no-install-recommends \
+        ' \
+        && apt-get update -yqq \
+        && apt-get upgrade -yqq \
+        && apt-get install -yqq --no-install-recommends \
         $buildDeps \
         build-essential \
         python3-pip \
@@ -50,22 +50,22 @@ RUN set -ex \
         rsync \
         netcat \
         locales \
-    && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
-    && locale-gen \
-    && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
-    && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
-    && pip install -U pip setuptools wheel \
-    && pip install Cython \
-    && pip install pytz \
-    && pip install pyOpenSSL \
-    && pip install ndg-httpsclient \
-    && pip install pyasn1 \
-    && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql]==$AIRFLOW_VERSION \
-    && pip install 'celery[redis]>=4.1.1,<4.2.0' \
-    && apt-get purge --auto-remove -yqq $buildDeps \
-    && apt-get autoremove -yqq --purge \
-    && apt-get clean \
-    && rm -rf \
+        && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
+        && locale-gen \
+        && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
+        && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
+        && pip install -U pip setuptools wheel \
+        && pip install Cython \
+        && pip install pytz \
+        && pip install pyOpenSSL \
+        && pip install ndg-httpsclient \
+        && pip install pyasn1 \
+        && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql]==$AIRFLOW_VERSION \
+        && pip install 'celery[redis]>=4.1.1,<4.2.0' \
+        && apt-get purge --auto-remove -yqq $buildDeps \
+        && apt-get autoremove -yqq --purge \
+        && apt-get clean \
+        && rm -rf \
         /var/lib/apt/lists/* \
         /tmp/* \
         /var/tmp/* \
@@ -94,17 +94,17 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
         wget
 
 ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 8.11.3
+ENV NODE_VERSION 10.5.0
 
 
 
 WORKDIR $NVM_DIR
 
 RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash \
-    && . $NVM_DIR/nvm.sh \
-    && nvm install $NODE_VERSION \
-    && nvm alias default $NODE_VERSION \
-    && nvm use default
+        && . $NVM_DIR/nvm.sh \
+        && nvm install $NODE_VERSION \
+        && nvm alias default $NODE_VERSION \
+        && nvm use default
 
 ENV NODE_PATH $NVM_DIR/versions/node/v$NODE_VERSION/lib/node_modules
 ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
@@ -112,17 +112,19 @@ ENV PATH      $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 WORKDIR ${AIRFLOW_HOME}
 RUN npm install -g yarn
 RUN yarn install
+RUN yarn global add typescript
+RUN yarn global add ts-node
 
 RUN pip3 install boto3==1.8.0 \
-    && pip3 install botocore==1.11.0 \
-    && pip3 install py4j==0.10.6 \
-    && pip3 install python-dateutil==2.6.1 \
-    && pip3 install requests==2.18.4 \
-    && pip3 install s3transfer==0.1.13 \
-    && pip3 install urllib3==1.22 \
-    && pip3 install psycopg2 \
-    && pip3 install pyyaml \
-    && pip3 install pandas
+        && pip3 install botocore==1.11.0 \
+        && pip3 install py4j==0.10.6 \
+        && pip3 install python-dateutil==2.6.1 \
+        && pip3 install requests==2.18.4 \
+        && pip3 install s3transfer==0.1.13 \
+        && pip3 install urllib3==1.22 \
+        && pip3 install psycopg2 \
+        && pip3 install pyyaml \
+        && pip3 install pandas
 
 ENV POSTGRES_HOST sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com
 ENV POSTGRES_PORT 5432

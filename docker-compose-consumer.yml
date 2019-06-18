@@ -1,0 +1,14 @@
+version: '2.1'
+services:
+    pbpConsumer:
+        image: 146006631841.dkr.ecr.us-west-1.amazonaws.com/docker-airflow-typescript:1.0.15
+        environment:
+            - DATABASE_API_CONNECTION=postgres://sixthman:lebrunsux123@sixthman-prod.cbdmxavtswxu.us-west-1.rds.amazonaws.com:5432/sixthman
+            - REDIS_HOST=socket-server.yoy1ao.0001.usw1.cache.amazonaws.com
+            - REDIS_PORT=6379
+            - PLAY_BY_PLAY_QUEUE=prod-pbp
+        volumes:
+            - ./build:/app/build
+            - ./node_modules:/app/node_modules
+        restart: always
+        command: node ./build/consumerJobs/playByPlayEventConsumer.js
