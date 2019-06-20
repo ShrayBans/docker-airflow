@@ -20,7 +20,7 @@ const FILE_TYPE_MAP: Object = {
 const Bluebird = require("bluebird");
 var fs = require("fs");
 
-const dirPath = "/Users/bansalshray/Desktop/Legaci/docker-airflow/downloads/nba_player_images";
+const dirPath = "/Users/bansalshray/Desktop/Legaci/docker-airflow/downloads/nba_draft";
 var filePaths = fs.readdirSync(dirPath);
 
 runScript(bulkUploadMemes);
