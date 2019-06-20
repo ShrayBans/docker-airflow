@@ -13,6 +13,7 @@
     "playByPlayEventConsumer": "yarn build && node ./build/consumerJobs/playByPlayEventConsumer.js",
     "twitterConsumer": "yarn build && node ./build/consumerJobs/twitterConsumer.js",
     "bulkUploadMemes": "yarn build && node ./build/ingestJobs/bulkUploadMemes.js",
+    "bulkUploadTwitter": "yarn build && node ./build/ingestJobs/bulkUploadTwitter.js",
     "createRollingPlayerStats": "ts-node -T ./src/createJobs/createRollingPlayerStats.ts",
     "scrapeBoxScore": "ts-node -T ./src/ingestJobs/scrapeNbaBoxscore.ts",
     "runFakeGame": "ts-node -T ./src/test/scripts/runFakeGameProd.ts"
